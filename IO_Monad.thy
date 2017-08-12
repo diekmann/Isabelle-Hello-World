@@ -95,6 +95,19 @@ text\<open>
 In Isabelle, a @{typ string} is just a type synonym for @{typ "char list"}.
 Consequently, translating a @{typ string} to Haskell yields a [Prelude.Char].
 The Isabelle @{typ String.literal} gets translated to a Haskell String.\<close>
+(*Exercise to the reader: Is this actually correct?
+Does the string model of Isabelle actually correspond to the one of the target language?
+What is a string?
+A list of integers in the range of [0..255]? This is what Isabelle2016-1 thinks.
+A list of bytes, i.e. 8 words?
+A list of ASCII chars, i.e. a list of 8 words where the most significant bit is always 0?
+A list of printable ASCII chars?
+A list of bytes, interpreted as unicode?
+A well-formed utf-8 string? Normalized?
+A well-formed utf-16 string?
+A list of unicode code points? Well-formed? Well-formed utf-32?
+...
+*)
 
 text\<open>Define a constant in Isabelle and provide a Haskell module which implements it.\<close>
 consts println :: "String.literal \<Rightarrow> unit IO"

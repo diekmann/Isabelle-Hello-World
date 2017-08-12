@@ -3,12 +3,15 @@ theory IO_Monad
     "~~/src/HOL/Library/Monad_Syntax"
 begin
 
+section\<open>Isabelle IO Monad inspired by Haskell\<close>
 text \<open>Definitions from @{url "https://wiki.haskell.org/IO_inside"}\<close>
 
+subsection\<open>Real World\<close>
 text \<open>Model the real world with a fake type. Dangerous.
 Models an arbitrary type we cannot reason about. Don't reason about the complete world!\<close>
 typedecl real_world
 
+subsection\<open>IO Monad\<close>
 text \<open>The set of all functions which take a @{typ real_world} and return an @{typ 'a} and a @{typ real_world}.\<close>
 typedef 'a IO = "UNIV :: (real_world \<Rightarrow> 'a \<times> real_world) set"
 proof -
@@ -25,6 +28,7 @@ term Abs_IO --\<open>Takes a @{typ "(real_world \<Rightarrow> 'a \<times> real_w
 term Rep_IO --\<open>Unpacks an @{typ "'a IO"} to a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"}\<close>
 
 
+subsection\<open>Monad Operations\<close>
 definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> 'b IO" where [code del]:
   "bind action1 action2 = Abs_IO (\<lambda>world0.
                                   let (a, world1) = (Rep_IO action1) world0;
@@ -44,6 +48,14 @@ text\<open>We can use monad syntax.\<close>
 lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
   by(simp)
 
+(*TODO return and other monad laws*)
+
+subsection\<open>Monad Laws\<close>
+lemma bind_assoc:
+  fixes m :: "'a IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  shows "(m >>= f) >>= g = m >>= (\<lambda>x. f x >>= g)"
+  by(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
+
 
 text\<open>Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the target language.\<close>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
@@ -62,7 +74,7 @@ code_printing type_constructor IO \<rightharpoonup> (Haskell) "Prelude.IO _"
 code_reserved Haskell IO
 code_reserved SML IO
 
-
+subsection\<open>Code Generator Setup\<close>
 text\<open>
 In Isabelle, a @{typ string} is just a type synonym for @{typ "char list"}.
 Consequently, translating a @{typ string} to Haskell yields a [Prelude.Char].

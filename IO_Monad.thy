@@ -2,7 +2,7 @@
 theory IO_Monad
   imports Main
     "~~/src/HOL/Library/Monad_Syntax"
-    "~~/src/HOL/Library/Code_Char"
+    "~~/src/HOL/Library/Code_Char" (*must be loaded at the end*)
 begin
 
 (*Programming TLS in Isabelle/HOL by Andreas Lochbihler and Marc Züst uses a partial function (\<rightharpoonup>)!
@@ -11,7 +11,7 @@ typedef 'a IO = "UNIV :: (real_world \<rightharpoonup> 'a \<times> real_world) s
 *)
 
 
-(*https://wiki.haskell.org/IO_inside*)
+text \<open>Definitions from @{url "https://wiki.haskell.org/IO_inside"}\<close>
 
 typedecl real_world -- \<open>fake type. Dangerous.\<close>
 
@@ -21,11 +21,24 @@ proof -
   show "\<exists>x. x \<in> UNIV" by simp
 qed
 
-term Abs_IO
-term Rep_IO
+term Abs_IO --\<open>Takes a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"} and abstracts it to an @{typ "'a IO"}.\<close>
+term Rep_IO --\<open>Unpacks an @{typ "'a IO"} to a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"}\<close>
 
-  lemma "do { x \<leftarrow> Some (1::nat); Some x} = Some 1" by simp
-
+(*context begin
+qualified*)
+definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> 'b IO" where
+  "bind action1 action2 \<equiv> Abs_IO (\<lambda>world0.
+                                  let (a, world1) = (Rep_IO action1) world0;
+                                      (b, world2) = (Rep_IO (action2 a)) world1
+                                  in (b, world2))"
+(*
+(>>=) :: IO a -> (a -> IO b) -> IO b
+(action1 >>= action2) world0 =
+   let (a, world1) = action1 world0
+       (b, world2) = action2 a world1
+   in (b, world2)
+*)
+  
 text\<open>Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
      The full qualified Prelude.IO\<close>
 code_printing type_constructor IO \<rightharpoonup> (Haskell) "Prelude.IO _"
@@ -33,12 +46,13 @@ code_printing type_constructor IO \<rightharpoonup> (Haskell) "Prelude.IO _"
 code_reserved Haskell IO
 code_reserved SML IO
 
-text\<open>Define a constant in Isabelle and provide a Haskell module which implements it.
 
+text\<open>
 In Isabelle, a @{typ string} is just a type synonym for @{typ "char list"}.
 Consequently, translating a @{typ string} to Haskell yields a [Prelude.Char].
-The Isabelle @{typ String.literal} gets translated to a Haskell String.
-\<close>
+The Isabelle @{typ String.literal} gets translated to a Haskell String.\<close>
+
+text\<open>Define a constant in Isabelle and provide a Haskell module which implements it.\<close>
 consts println :: "String.literal \<Rightarrow> unit IO"
 code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
                               and (SML) "print (_ ^ \"\\n\")" (*adding newline manually*)
@@ -48,6 +62,25 @@ println = Prelude.putStrLn;
 *}
 code_reserved Haskell println StdIO
 code_reserved SML println print
+
+  
+lemma "((a::'a option) \<bind> (\<lambda>_. b)) = b"
+    oops
+lemma "((a::'a list) \<bind> (\<lambda>_. b)) = b"
+    oops
+lemma "(a \<bind> (\<lambda>_. b)) = b"
+    oops
+
+  
+lemma "IO_Monad.bind (println (String.implode ''foo''))
+            (\<lambda>_.  println (String.implode ''bar''))
+      = (println (String.implode ''foo'') \<bind> (\<lambda>_. println (String.implode ''bar'')))"
+  apply(simp)
+    oops
+  
+lemma "do { x \<leftarrow> Some (1::nat); Some x} = Some 1" by simp
+lemma "do { println (String.implode ''foo'');
+            println (String.implode ''bar'')} = ()" by simp
 
 text\<open>The main function, defined in Isabelle. It should have the right type in Haskell.\<close>
 definition main :: "unit IO" where

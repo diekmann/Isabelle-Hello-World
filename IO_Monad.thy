@@ -39,16 +39,21 @@ definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> '
 *)
 hide_const (open) bind
 adhoc_overloading bind IO_Monad.bind
+  
+text\<open>We can use monad syntax.\<close>
+lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
+  by(simp)
+
 
 text\<open>Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the target language.\<close>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
-                                    and (SML) "(let val res = _ in _ res end)" (*TODO really? Better not use name res*)
+                                    and (SML) "bind"
 
-
-  
-text\<open>We can now use monad syntax.\<close>
-lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
-  by(simp)
+text\<open>SML does not come with a bind function. We just define it (hopefully correct).\<close>
+code_printing code_module Bind \<rightharpoonup> (SML) {*
+fun bind x f = f x;
+*}
+code_reserved SML bind
   
 text\<open>Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
      The full qualified Prelude.IO\<close>
@@ -67,6 +72,7 @@ text\<open>Define a constant in Isabelle and provide a Haskell module which impl
 consts println :: "String.literal \<Rightarrow> unit IO"
 code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
                               and (SML) "print (_ ^ \"\\n\")" (*adding newline manually*)
+text \<open>A Haskell module named StdIO which just implements println.\<close>
 code_printing code_module StdIO \<rightharpoonup> (Haskell) {*
 import qualified Prelude (putStrLn);
 println = Prelude.putStrLn;
@@ -75,7 +81,7 @@ code_reserved Haskell println StdIO
 code_reserved SML println print
 
 
-
+text\<open>Monad Syntax\<close>
 lemma "bind (println (String.implode ''foo''))
             (\<lambda>_.  println (String.implode ''bar''))
       = (println (String.implode ''foo'') \<bind> (\<lambda>_. println (String.implode ''bar'')))"

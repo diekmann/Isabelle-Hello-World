@@ -64,7 +64,7 @@ lemma left_id:
 
 lemma right_id:
   fixes m :: "'a IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
-  shows "(m >>= IO_Monad.return)  =	m"
+  shows "(m >>= IO_Monad.return)  =  m"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
     
 lemma bind_assoc:
@@ -87,7 +87,9 @@ fun return x = fn y => x; (** TODO really?**)
 code_reserved SML bind return
   
 text\<open>Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
-     The full qualified Prelude.IO\<close>
+     the one of the target language.
+     For Haskell, this is the full qualified Prelude.IO.
+     For SML, we just ignore the IO.\<close>
 code_printing type_constructor IO \<rightharpoonup> (Haskell) "Prelude.IO _"
                                  and (SML) "_"
 code_reserved Haskell IO

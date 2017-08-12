@@ -50,6 +50,7 @@ definition return :: "'a \<Rightarrow> 'a IO" where [code del]:
 return :: a -> IO a
 return a world0  =  (a, world0)
 *)
+hide_const (open) return
 
 text\<open>We can use monad syntax.\<close>
 lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
@@ -58,12 +59,12 @@ lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
 subsection\<open>Monad Laws\<close>
 lemma left_id:
   fixes f :: "'a \<Rightarrow> 'b IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
-  shows "(return a >>= f)  =  f a"
+  shows "(IO_Monad.return a >>= f)  =  f a"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
 
 lemma right_id:
   fixes m :: "'a IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
-  shows "(m >>= return)  =	m"
+  shows "(m >>= IO_Monad.return)  =	m"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
     
 lemma bind_assoc:
@@ -75,12 +76,15 @@ lemma bind_assoc:
 text\<open>Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the target language.\<close>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
                                     and (SML) "bind"
+            | constant IO_Monad.return \<rightharpoonup> (Haskell) "return"
+                                    and (SML) "return"
 
 text\<open>SML does not come with a bind function. We just define it (hopefully correct).\<close>
 code_printing code_module Bind \<rightharpoonup> (SML) \<open>
 fun bind x f = f x;
+fun return x = fn y => x; (** TODO really?**)
 \<close>
-code_reserved SML bind
+code_reserved SML bind return
   
 text\<open>Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
      The full qualified Prelude.IO\<close>

@@ -43,23 +43,39 @@ definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> '
 *)
 hide_const (open) bind
 adhoc_overloading bind IO_Monad.bind
-  
+
+definition return :: "'a \<Rightarrow> 'a IO" where [code del]:
+  "return a \<equiv> Abs_IO (\<lambda>world. (a, world))"
+(*
+return :: a -> IO a
+return a world0  =  (a, world0)
+*)
+
 text\<open>We can use monad syntax.\<close>
 lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
   by(simp)
 
-(*TODO return and other monad laws*)
-
 subsection\<open>Monad Laws\<close>
+lemma left_id:
+  fixes f :: "'a \<Rightarrow> 'b IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  shows "(return a >>= f)  =  f a"
+  by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
+
+lemma right_id:
+  fixes m :: "'a IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  shows "(m >>= return)  =	m"
+  by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
+    
 lemma bind_assoc:
   fixes m :: "'a IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
-  shows "(m >>= f) >>= g = m >>= (\<lambda>x. f x >>= g)"
+  shows "((m >>= f) >>= g)  =  (m >>= (\<lambda>x. f x >>= g))"
   by(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
 
 
 text\<open>Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the target language.\<close>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
                                     and (SML) "bind"
+(*TODO code for return*)
 
 text\<open>SML does not come with a bind function. We just define it (hopefully correct).\<close>
 code_printing code_module Bind \<rightharpoonup> (SML) {*
@@ -100,7 +116,7 @@ lemma "bind (println (String.implode ''foo''))
   by(simp)
 lemma "do { _ \<leftarrow> println (String.implode ''foo'');
             println (String.implode ''bar'')} =
-      (println (String.implode ''foo'') \<bind> (\<lambda>_. println (String.implode ''bar'')))" by simp 
+      (println (String.implode ''foo'') \<then> (println (String.implode ''bar'')))" by simp 
 
 
 

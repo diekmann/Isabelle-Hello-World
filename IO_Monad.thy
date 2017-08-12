@@ -21,13 +21,15 @@ proof -
   show "\<exists>x. x \<in> UNIV" by simp
 qed
 
+
 term Abs_IO --\<open>Takes a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"} and abstracts it to an @{typ "'a IO"}.\<close>
 term Rep_IO --\<open>Unpacks an @{typ "'a IO"} to a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"}\<close>
 
+
 (*context begin
 qualified*)
-definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> 'b IO" where
-  "bind action1 action2 \<equiv> Abs_IO (\<lambda>world0.
+definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> 'b IO" where [code del]:
+  "bind action1 action2 = Abs_IO (\<lambda>world0.
                                   let (a, world1) = (Rep_IO action1) world0;
                                       (b, world2) = (Rep_IO (action2 a)) world1
                                   in (b, world2))"
@@ -38,6 +40,18 @@ definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> '
        (b, world2) = action2 a world1
    in (b, world2)
 *)
+hide_const (open) bind
+adhoc_overloading bind IO_Monad.bind
+
+
+code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
+                                    and (SML) "(let val res = _ in _ res end)" (*TODO really? Better not use name res*)
+
+
+  
+text\<open>We can now use monad syntax\<close>
+lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
+  by(simp)
   
 text\<open>Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
      The full qualified Prelude.IO\<close>
@@ -63,28 +77,22 @@ println = Prelude.putStrLn;
 code_reserved Haskell println StdIO
 code_reserved SML println print
 
-  
-lemma "((a::'a option) \<bind> (\<lambda>_. b)) = b"
-    oops
-lemma "((a::'a list) \<bind> (\<lambda>_. b)) = b"
-    oops
-lemma "(a \<bind> (\<lambda>_. b)) = b"
-    oops
 
   
-lemma "IO_Monad.bind (println (String.implode ''foo''))
+lemma "bind (println (String.implode ''foo''))
             (\<lambda>_.  println (String.implode ''bar''))
       = (println (String.implode ''foo'') \<bind> (\<lambda>_. println (String.implode ''bar'')))"
-  apply(simp)
-    oops
-  
-lemma "do { x \<leftarrow> Some (1::nat); Some x} = Some 1" by simp
-lemma "do { println (String.implode ''foo'');
-            println (String.implode ''bar'')} = ()" by simp
+  by(simp)
+lemma "do { _ \<leftarrow> println (String.implode ''foo'');
+            println (String.implode ''bar'')} =
+      (println (String.implode ''foo'') \<bind> (\<lambda>_. println (String.implode ''bar'')))" by simp 
 
 text\<open>The main function, defined in Isabelle. It should have the right type in Haskell.\<close>
 definition main :: "unit IO" where
-  "main \<equiv> println (String.implode ''Hello World!'')"
+  "main \<equiv> do {
+               _ \<leftarrow> println (String.implode ''Hello World!'');
+               println (String.implode ''Such command chaining.'')
+             }"
   
   (*
 setup_lifting type_definition_IO

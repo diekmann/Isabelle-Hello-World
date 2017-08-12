@@ -75,12 +75,11 @@ lemma bind_assoc:
 text\<open>Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the target language.\<close>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
                                     and (SML) "bind"
-(*TODO code for return*)
 
 text\<open>SML does not come with a bind function. We just define it (hopefully correct).\<close>
-code_printing code_module Bind \<rightharpoonup> (SML) {*
+code_printing code_module Bind \<rightharpoonup> (SML) \<open>
 fun bind x f = f x;
-*}
+\<close>
 code_reserved SML bind
   
 text\<open>Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
@@ -90,7 +89,7 @@ code_printing type_constructor IO \<rightharpoonup> (Haskell) "Prelude.IO _"
 code_reserved Haskell IO
 code_reserved SML IO
 
-subsection\<open>Code Generator Setup\<close>
+subsection\<open>Code Generator Setup and Basic Functions\<close>
 text\<open>
 In Isabelle, a @{typ string} is just a type synonym for @{typ "char list"}.
 Consequently, translating a @{typ string} to Haskell yields a [Prelude.Char].
@@ -109,17 +108,26 @@ A list of unicode code points? Well-formed? Well-formed utf-32?
 ...
 *)
 
-text\<open>Define a constant in Isabelle and provide a Haskell module which implements it.\<close>
+text\<open>Define IO functions in Isabelle without implementation.\<close>
 consts println :: "String.literal \<Rightarrow> unit IO"
+consts getLine :: "String.literal IO"
 code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
                               and (SML) "print (_ ^ \"\\n\")" (*adding newline manually*)
-text \<open>A Haskell module named StdIO which just implements println.\<close>
-code_printing code_module StdIO \<rightharpoonup> (Haskell) {*
-import qualified Prelude (putStrLn);
+            | constant getLine \<rightharpoonup> (Haskell) "StdIO.getLine"
+                              and (SML) "getLine"
+
+text \<open>A Haskell module named StdIO which just implements println and getLine.\<close>
+code_printing code_module StdIO \<rightharpoonup> (Haskell) \<open>
+import qualified Prelude (putStrLn, getLine);
 println = Prelude.putStrLn;
-*}
-code_reserved Haskell println StdIO
-code_reserved SML println print
+getLine = Prelude.getLine;
+\<close>                              and (SML) \<open>
+val getLine = case (TextIO.inputLine TextIO.stdIn)
+                   of SOME s => s
+                    | NONE => raise Fail "getLine";
+\<close>
+code_reserved Haskell StdIO println getLine
+code_reserved SML println print getLine TextIO
 
 
 text\<open>Monad Syntax\<close>

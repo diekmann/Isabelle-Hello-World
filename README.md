@@ -42,6 +42,6 @@ Hello Corny
 # Things I'd like to see
  * Socket server
  * String handling
- * `println "foo" >> println "bar"` and a *proof* that I got `foo\nbar\n` on my stdout
+ * `println "foo" >> println "bar"` and a *proof* that I got `foo\nbar\n` on my stdout [done](HelloWorld_Proof.thy)
  * `now >>= \time -> println $ "the time is now " ++ time`
  * Read a number from stdin, increment the number and output it

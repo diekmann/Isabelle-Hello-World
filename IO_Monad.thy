@@ -13,7 +13,7 @@ typedecl real_world
 
 subsection\<open>IO Monad\<close>
 text \<open>The set of all functions which take a @{typ real_world} and return an @{typ 'a} and a @{typ real_world}.\<close>
-typedef 'a IO = "UNIV :: (real_world \<Rightarrow> 'a \<times> real_world) set"
+typedef 'a IO = "UNIV :: (real_world \<rightharpoonup> 'a \<times> real_world) set"
 proof -
   show "\<exists>x. x \<in> UNIV" by simp
 qed
@@ -24,16 +24,17 @@ We use a total function. This implies the dangerous assumption that all IO funct
 *)
 
 text \<open>typedef gives us some convenient definitions. They must never end up in generated code.\<close>
+(*TODO fix*)
 term Abs_IO --\<open>Takes a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"} and abstracts it to an @{typ "'a IO"}.\<close>
 term Rep_IO --\<open>Unpacks an @{typ "'a IO"} to a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"}\<close>
 
-
 subsection\<open>Monad Operations\<close>
 definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> 'b IO" where [code del]:
-  "bind action1 action2 = Abs_IO (\<lambda>world0.
-                                  let (a, world1) = (Rep_IO action1) world0;
-                                      (b, world2) = (Rep_IO (action2 a)) world1
-                                  in (b, world2))"
+  "bind action1 action2 = Abs_IO (\<lambda>world0. do {
+                                      (a, world1) \<leftarrow> (Rep_IO action1) world0;
+                                      (b, world2) \<leftarrow> (Rep_IO (action2 a)) world1;
+                                  Some (b, world2)
+                                  })"
 (* Haskell:
 (>>=) :: IO a -> (a -> IO b) -> IO b
 (action1 >>= action2) world0 =
@@ -41,11 +42,25 @@ definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> '
        (b, world2) = action2 a world1
    in (b, world2)
 *)
+lemma "bind action1 action2 = Abs_IO (\<lambda>world0.
+                                               (case (Rep_IO action1) world0
+                                                of None \<Rightarrow> None
+                                                |  Some (a, world1) \<Rightarrow> (case (Rep_IO (action2 a)) world1
+                                                                        of None \<Rightarrow> None
+                                                                        |  Some (b, world2) \<Rightarrow> Some (b, world2)
+                                                                       )
+                                               ))"
+  apply(simp add: bind_def)
+  apply(simp add: Abs_IO_inject fun_eq_iff)
+  apply(simp split: Option.bind_splits)
+  by (simp add: option.case_eq_if)
+  
+
 hide_const (open) bind
 adhoc_overloading bind IO_Monad.bind
 
 definition return :: "'a \<Rightarrow> 'a IO" where [code del]:
-  "return a \<equiv> Abs_IO (\<lambda>world. (a, world))"
+  "return a \<equiv> Abs_IO (\<lambda>world. Some (a, world))"
 (*
 return :: a -> IO a
 return a world0  =  (a, world0)
@@ -70,7 +85,9 @@ lemma right_id:
 lemma bind_assoc:
   fixes m :: "'a IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
   shows "((m >>= f) >>= g)  =  (m >>= (\<lambda>x. f x >>= g))"
-  by(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
+  apply(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
+  by (metis (no_types, lifting) bind_option_cong case_prod_beta)
+
 
 
 text\<open>Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the target language.\<close>

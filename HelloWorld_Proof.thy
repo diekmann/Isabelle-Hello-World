@@ -3,6 +3,7 @@ theory HelloWorld_Proof
 begin
 
 text\<open>With the appropriate assumptions about @{const println} and @{const getLine}, we can even prove something.\<close>
+(*broken*)
 locale yolo =
   --\<open>We model stdin and stdout as part of the @{typ real_world}. Note that we know nothing about @{typ real_world},
      we just model that we can find stdin and stdout somewhere in there.\<close>

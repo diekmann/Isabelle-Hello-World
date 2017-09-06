@@ -74,8 +74,7 @@ proof -
   show ?thesis
     apply(simp add: main_def)
     apply(simp add: get_new_world_bind)
-    apply(rule get_stdout_println_append[where stdout="[''Hello World! What is your name?'']", simplified])
-    subgoal using stdout_world2 by(simp)
+    apply(rule get_stdout_println_append[OF stdout_world2, simplified])
     using stdin_world2 by(simp add: implode_def STR_inverse)
 qed
 end

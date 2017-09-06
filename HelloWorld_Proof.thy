@@ -2,8 +2,13 @@ theory HelloWorld_Proof
   imports HelloWorld
 begin
 
+text\<open>Apply a function @{term iofun} to a specific world and return the new world (discarding the result of @{term iofun}).\<close>
 definition get_new_world :: "'a IO \<Rightarrow> real_world \<Rightarrow> real_world" where
   "get_new_world iofun world = snd (Rep_IO iofun world)"
+
+text\<open>Similar, but only get the result.\<close>
+definition get_new_result :: "'a IO \<Rightarrow> real_world \<Rightarrow> 'a" where
+  "get_new_result iofun world = fst (Rep_IO iofun world)"
 
 lemma get_new_world_Abs_IO: "get_new_world (Abs_IO f) world = snd (f world)"
   by(simp add: get_new_world_def Abs_IO_inverse)
@@ -15,8 +20,8 @@ lemma get_new_world_then: "get_new_world (io1 \<then> io2) world = get_new_world
   by simp
 
 lemma get_new_world_bind:
-  "get_new_world (io1 \<bind> io2) world = get_new_world (io2 (fst (Rep_IO io1 world))) (get_new_world io1 world)"
-  apply(simp add: get_new_world_def)
+  "get_new_world (io1 \<bind> io2) world = get_new_world (io2 (get_new_result io1 world)) (get_new_world io1 world)"
+  apply(simp add: get_new_world_def get_new_result_def)
   apply(simp add: bind_def Abs_IO_inverse)
   apply(case_tac "Rep_IO io1 world")
   by simp
@@ -31,7 +36,7 @@ locale yolo =
   --\<open>Assumptions about stdin:
       Calling @{const println} appends to the end of stdout and @{const getLine} does not change anything.
     \<close>
-  assumes get_stdout_println: "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world (println (STR str)) world) = (stdout@[str])"
+  assumes get_stdout_println: "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world (println (STR str)) world) = stdout@[str]"
   and get_stdout_getLine: "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world getLine world) = stdout"
 
   --\<open>Assumptions about stdin:
@@ -39,7 +44,7 @@ locale yolo =
     \<close>
   and get_stdin_println: "get_stdin world = stdin \<Longrightarrow> get_stdin (get_new_world (println (STR str)) world) = stdin"
   and get_stdin_getLine: "get_stdin world = inp#stdin \<Longrightarrow>
-                            get_stdin (get_new_world getLine world) = stdin \<and> fst (Rep_IO getLine world) = STR inp"
+                            get_stdin (get_new_world getLine world) = stdin \<and> get_new_result getLine world = STR inp"
 begin
 
 lemma get_stdout_println_append:
@@ -58,12 +63,10 @@ proof -
   let ?world2="get_new_world getLine ?world1"
   from get_stdout_println[OF stdout] have stdout_world2:
     "get_stdout ?world2 = [''Hello World! What is your name?'']"
-    apply (simp add: implode_def)
-    by (simp add: get_stdout_getLine)
+    by (simp add: implode_def get_stdout_getLine)
   from get_stdin_getLine[where stdin="[]", OF stdin] have stdin_world2:
-    "fst (Rep_IO getLine ?world1) = STR ''corny''"
-    apply (simp add: implode_def)
-    using get_stdin_getLine get_stdin_println stdin by blast
+    "get_new_result getLine ?world1 = STR ''corny''"
+    by (simp add: implode_def get_stdin_getLine get_stdin_println stdin)
   show ?thesis
     apply(simp add: main_def)
     apply(simp add: get_new_world_bind)

@@ -2,6 +2,25 @@ theory HelloWorld_Proof
   imports HelloWorld
 begin
 
+definition get_new_world :: "'a IO \<Rightarrow> real_world \<Rightarrow> real_world" where
+  "get_new_world iofun world = snd (Rep_IO iofun world)"
+
+lemma get_new_world_Abs_IO: "get_new_world (Abs_IO f) world = snd (f world)"
+  by(simp add: get_new_world_def Abs_IO_inverse)
+
+lemma get_new_world_then: "get_new_world (io1 \<then> io2) world = get_new_world io2 (get_new_world io1 world)"
+  apply(simp add: get_new_world_def)
+  apply(simp add: bind_def Abs_IO_inverse)
+  apply(case_tac "Rep_IO io1 world")
+  by simp
+
+lemma get_new_world_bind:
+  "get_new_world (io1 \<bind> io2) world = get_new_world (io2 (fst (Rep_IO io1 world))) (get_new_world io1 world)"
+  apply(simp add: get_new_world_def)
+  apply(simp add: bind_def Abs_IO_inverse)
+  apply(case_tac "Rep_IO io1 world")
+  by simp
+
 text\<open>With the appropriate assumptions about @{const println} and @{const getLine}, we can even prove something.\<close>
 locale yolo =
   --\<open>We model stdin and stdout as part of the @{typ real_world}. Note that we know nothing about @{typ real_world},
@@ -12,20 +31,20 @@ locale yolo =
   --\<open>Assumptions about stdin:
       Calling @{const println} appends to the end of stdout and @{const getLine} does not change anything.
     \<close>
-  assumes get_stdout_println: "get_stdout world = stdout \<Longrightarrow> get_stdout (snd (Rep_IO (println (STR str)) world)) = (stdout@[str])"
-  and get_stdout_getLine: "get_stdout world = stdout \<Longrightarrow> get_stdout (snd (Rep_IO getLine world)) = stdout"
+  assumes get_stdout_println: "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world (println (STR str)) world) = (stdout@[str])"
+  and get_stdout_getLine: "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world getLine world) = stdout"
 
   --\<open>Assumptions about stdin:
       Calling @{const println} does not change anything and @{const getLine} removes the first element from the stdin stream.
     \<close>
-  and get_stdin_println: "get_stdin world = stdin \<Longrightarrow> get_stdin (snd (Rep_IO (println (STR str)) world)) = stdin"
+  and get_stdin_println: "get_stdin world = stdin \<Longrightarrow> get_stdin (get_new_world (println (STR str)) world) = stdin"
   and get_stdin_getLine: "get_stdin world = inp#stdin \<Longrightarrow>
-                            get_stdin (snd (Rep_IO getLine world)) = stdin \<and> fst (Rep_IO getLine world) = STR inp"
+                            get_stdin (get_new_world getLine world) = stdin \<and> fst (Rep_IO getLine world) = STR inp"
 begin
 
 lemma get_stdout_println_append:
       "get_stdout world = stdout \<Longrightarrow> str1 = STR str2 \<Longrightarrow>
-        get_stdout (snd (Rep_IO (println str1) world)) = stdout @ [str2]"
+        get_stdout (get_new_world (println str1) world) = stdout @ [str2]"
   by(simp add: get_stdout_println)
 
 text\<open>Correctness of @{const main}:
@@ -33,10 +52,10 @@ text\<open>Correctness of @{const main}:
   @{term "[''Hello World! What is your name?'', ''Hello corny'']"}.
 \<close>
 lemma assumes stdout: "get_stdout world = []" and stdin: "get_stdin world = [''corny'']"
-  shows "get_stdout (snd ((Rep_IO main) world)) = [''Hello World! What is your name?'', ''Hello corny'']"
+  shows "get_stdout (get_new_world main world) = [''Hello World! What is your name?'', ''Hello corny'']"
 proof -
-  let ?world1="snd (Rep_IO (println (String.implode ''Hello World! What is your name?'')) world)"
-  let ?world2="snd (Rep_IO getLine ?world1)"
+  let ?world1="get_new_world (println (String.implode ''Hello World! What is your name?'')) world"
+  let ?world2="get_new_world getLine ?world1"
   from get_stdout_println[OF stdout] have stdout_world2:
     "get_stdout ?world2 = [''Hello World! What is your name?'']"
     apply (simp add: implode_def)
@@ -47,14 +66,10 @@ proof -
     using get_stdin_getLine get_stdin_println stdin by blast
   show ?thesis
     apply(simp add: main_def)
-    apply(simp add: bind_def)
-    apply(simp add: Abs_IO_inverse)
-    apply(case_tac "Rep_IO (println (String.implode ''Hello World! What is your name?'')) world", simp, rename_tac world1)
-    apply(case_tac "Rep_IO getLine world1", simp, rename_tac inp world2)
+    apply(simp add: get_new_world_bind)
     apply(rule get_stdout_println_append[where stdout="[''Hello World! What is your name?'']", simplified])
-    subgoal using stdout_world2 by simp
-    apply(insert stdin_world2)
-    by(simp add: implode_def STR_inverse)
+    subgoal using stdout_world2 by(simp)
+    using stdin_world2 by(simp add: implode_def STR_inverse)
 qed
 end
 

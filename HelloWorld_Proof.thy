@@ -13,18 +13,18 @@ definition get_new_result :: "'a IO \<Rightarrow> real_world \<Rightarrow> 'a" w
 lemma get_new_world_Abs_IO: "get_new_world (Abs_IO f) world = snd (f world)"
   by(simp add: get_new_world_def Abs_IO_inverse)
 
-lemma get_new_world_then: "get_new_world (io1 \<then> io2) world = get_new_world io2 (get_new_world io1 world)"
-  apply(simp add: get_new_world_def)
-  apply(simp add: bind_def Abs_IO_inverse)
-  apply(case_tac "Rep_IO io1 world")
-  by simp
+lemma get_new_world_then:
+    "get_new_world (io1 \<then> io2) world = get_new_world io2 (get_new_world io1 world)"
+  and get_new_result_then:
+    "get_new_result (io1 \<then> io2) world = get_new_result io2 (get_new_world io1 world)"
+  by (simp_all add: get_new_world_def get_new_result_def bind_def Abs_IO_inverse split_beta)
 
 lemma get_new_world_bind:
-  "get_new_world (io1 \<bind> io2) world = get_new_world (io2 (get_new_result io1 world)) (get_new_world io1 world)"
-  apply(simp add: get_new_world_def get_new_result_def)
-  apply(simp add: bind_def Abs_IO_inverse)
-  apply(case_tac "Rep_IO io1 world")
-  by simp
+    "get_new_world (io1 \<bind> io2) world = get_new_world (io2 (get_new_result io1 world)) (get_new_world io1 world)"
+  and get_new_result_bind:
+    "get_new_result (io1 \<bind> io2) world = get_new_result (io2 (get_new_result io1 world)) (get_new_world io1 world)"
+  by(simp_all add: get_new_world_def get_new_result_def bind_def Abs_IO_inverse split_beta)
+
 
 text\<open>With the appropriate assumptions about @{const println} and @{const getLine}, we can even prove something.\<close>
 locale yolo =
@@ -36,15 +36,19 @@ locale yolo =
   --\<open>Assumptions about stdin:
       Calling @{const println} appends to the end of stdout and @{const getLine} does not change anything.
     \<close>
-  assumes get_stdout_println: "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world (println (STR str)) world) = stdout@[str]"
-  and get_stdout_getLine: "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world getLine world) = stdout"
+assumes get_stdout_println:
+    "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world (println (STR str)) world) = stdout@[str]"
+  and get_stdout_getLine:
+    "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world getLine world) = stdout"
 
   --\<open>Assumptions about stdin:
       Calling @{const println} does not change anything and @{const getLine} removes the first element from the stdin stream.
     \<close>
-  and get_stdin_println: "get_stdin world = stdin \<Longrightarrow> get_stdin (get_new_world (println (STR str)) world) = stdin"
-  and get_stdin_getLine: "get_stdin world = inp#stdin \<Longrightarrow>
-                            get_stdin (get_new_world getLine world) = stdin \<and> get_new_result getLine world = STR inp"
+  and get_stdin_println:
+    "get_stdin world = stdin \<Longrightarrow> get_stdin (get_new_world (println (STR str)) world) = stdin"
+  and get_stdin_getLine:
+    "get_stdin world = inp#stdin \<Longrightarrow>
+     get_stdin (get_new_world getLine world) = stdin \<and> get_new_result getLine world = STR inp"
 begin
 
 lemma get_stdout_println_append:

@@ -53,7 +53,7 @@ text\<open>Correctness of @{const main}:
   @{term "[''Hello World! What is your name?'', ''Hello corny'']"}.
 \<close>
 lemma assumes stdout: "get_stdout world = []" and stdin: "get_stdin world = [''corny'']"
-  shows "get_stdout (get_new_world main world) = [''Hello World! What is your name?'', ''Hello corny'']"
+  shows "get_stdout (get_new_world main world) = [''Hello World! What is your name?'', ''Hello, corny!'']"
 proof -
   let ?world1="get_new_world (println (STR ''Hello World! What is your name?'')) world"
   let ?world2="get_new_world getLine ?world1"
@@ -70,7 +70,7 @@ proof -
     apply(auto simp add: get_new_world_bind)
      apply code_simp
     apply (subst stdin_world2)
-    apply (subst plus_literal.rep_eq)
+    apply (subst plus_literal.rep_eq)+
     apply code_simp
     done
 qed

@@ -5,27 +5,27 @@ begin
 text\<open>
   Apply some function \<^term>\<open>iofun\<close> to a specific world and return the new world
   (discarding the result of \<^term>\<open>iofun\<close>).\<close>
-definition get_new_world :: "'\<alpha> IO \<Rightarrow> \<^url> \<Rightarrow> \<^url>" where
-  "get_new_world iofun world = snd (Rep_IO iofun world)"
+definition get_new_world :: "'\<alpha> io \<Rightarrow> \<^url> \<Rightarrow> \<^url>" where
+  "get_new_world iofun world = snd (Rep_io iofun world)"
 
 text\<open>Similar, but only get the result.\<close>
-definition get_new_result :: "'\<alpha> IO \<Rightarrow> \<^url> \<Rightarrow> '\<alpha>" where
-  "get_new_result iofun world = fst (Rep_IO iofun world)"
+definition get_new_result :: "'\<alpha> io \<Rightarrow> \<^url> \<Rightarrow> '\<alpha>" where
+  "get_new_result iofun world = fst (Rep_io iofun world)"
 
-lemma get_new_world_Abs_IO: "get_new_world (Abs_IO f) world = snd (f world)"
-  by(simp add: get_new_world_def Abs_IO_inverse)
+lemma get_new_world_Abs_io: "get_new_world (Abs_io f) world = snd (f world)"
+  by(simp add: get_new_world_def Abs_io_inverse)
 
 lemma get_new_world_then:
     "get_new_world (io\<^sub>1 \<then> io\<^sub>2) world = get_new_world io\<^sub>2 (get_new_world io\<^sub>1 world)"
   and get_new_result_then:
     "get_new_result (io\<^sub>1 \<then> io\<^sub>2) world = get_new_result io\<^sub>2 (get_new_world io\<^sub>1 world)"
-  by (simp_all add: get_new_world_def get_new_result_def bind_def Abs_IO_inverse split_beta)
+  by (simp_all add: get_new_world_def get_new_result_def bind_def Abs_io_inverse split_beta)
 
 lemma get_new_world_bind:
     "get_new_world (io\<^sub>1 \<bind> io\<^sub>2) world = get_new_world (io\<^sub>2 (get_new_result io\<^sub>1 world)) (get_new_world io\<^sub>1 world)"
   and get_new_result_bind:
     "get_new_result (io\<^sub>1 \<bind> io\<^sub>2) world = get_new_result (io\<^sub>2 (get_new_result io\<^sub>1 world)) (get_new_world io\<^sub>1 world)"
-  by(simp_all add: get_new_world_def get_new_result_def bind_def Abs_IO_inverse split_beta)
+  by(simp_all add: get_new_world_def get_new_result_def bind_def Abs_io_inverse split_beta)
 
 text\<open>
   With the appropriate assumptions about \<^const>\<open>println\<close> and \<^const>\<open>getLine\<close>,

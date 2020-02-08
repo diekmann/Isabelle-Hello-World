@@ -1,4 +1,4 @@
-theory IO_Monad
+theory IO
   imports Main
     "HOL-Library.Monad_Syntax"
 begin
@@ -14,7 +14,7 @@ typedecl real_world (\<open>\<^url>\<close>)
 subsection\<open>IO Monad\<close>
 text \<open>The set of all functions which take a \<^typ>\<open>\<^url>\<close> and return an \<^typ>\<open>'\<alpha>\<close> and a \<^typ>\<open>\<^url>\<close>.\<close>
 
-typedef '\<alpha> IO = "UNIV :: (\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>) set"
+typedef '\<alpha> io = "UNIV :: (\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>) set"
 proof -
   show "\<exists>x. x \<in> UNIV" by simp
 qed
@@ -24,7 +24,7 @@ text \<open>
   (\<open>\<rightharpoonup>\<close>).
   \<^theory_text>\<open>
     typedecl real_world
-    typedef '\<alpha> IO = "UNIV :: (real_world \<rightharpoonup> '\<alpha> \<times> real_world) set" by simp
+    typedef '\<alpha> io = "UNIV :: (real_world \<rightharpoonup> '\<alpha> \<times> real_world) set" by simp
   \<close>
   We use a total function. This implies the dangerous assumption that all IO functions are total
   (i.e., terminate).
@@ -34,15 +34,15 @@ text \<open>
   The \<^theory_text>\<open>typedef\<close> above gives us some convenient definitions.
   They should not end up in generated code.
 \<close>
-term Abs_IO \<comment> \<open>Takes a \<^typ>\<open>(\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>)\<close> and abstracts it to an \<^typ>\<open>'\<alpha> IO\<close>.\<close>
-term Rep_IO \<comment> \<open>Unpacks an \<^typ>\<open>'\<alpha> IO\<close> to a \<^typ>\<open>(\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>)\<close>\<close>
+term Abs_io \<comment> \<open>Takes a \<^typ>\<open>(\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>)\<close> and abstracts it to an \<^typ>\<open>'\<alpha> io\<close>.\<close>
+term Rep_io \<comment> \<open>Unpacks an \<^typ>\<open>'\<alpha> io\<close> to a \<^typ>\<open>(\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>)\<close>\<close>
 
 
 subsection\<open>Monad Operations\<close>
-definition bind :: "'\<alpha> IO \<Rightarrow> ('\<alpha> \<Rightarrow> 'b IO) \<Rightarrow> 'b IO" where [code del]:
-  "bind action1 action2 = Abs_IO (\<lambda>world0.
-                                  let (a, world1) = (Rep_IO action1) world0;
-                                      (b, world2) = (Rep_IO (action2 a)) world1
+definition bind :: "'\<alpha> io \<Rightarrow> ('\<alpha> \<Rightarrow> 'b io) \<Rightarrow> 'b io" where [code del]:
+  "bind action1 action2 = Abs_io (\<lambda>world0.
+                                  let (a, world1) = (Rep_io action1) world0;
+                                      (b, world2) = (Rep_io (action2 a)) world1
                                   in (b, world2))"
 
 text \<open>
@@ -57,15 +57,15 @@ text \<open>
 \<close>
 
 hide_const (open) bind
-adhoc_overloading bind IO_Monad.bind
+adhoc_overloading bind IO.bind
 
 text \<open>Thanks to \<^theory_text>\<open>adhoc_overloading\<close>, we can use monad syntax.\<close>
-lemma "bind (foo :: '\<alpha> IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
+lemma "bind (foo :: '\<alpha> io) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
   by simp
 
 
-definition return :: "'\<alpha> \<Rightarrow> '\<alpha> IO" where [code del]:
-  "return a \<equiv> Abs_IO (\<lambda>world. (a, world))"
+definition return :: "'\<alpha> \<Rightarrow> '\<alpha> io" where [code del]:
+  "return a \<equiv> Abs_io (\<lambda>world. (a, world))"
 
 hide_const (open) return
 
@@ -80,28 +80,28 @@ text \<open>
 
 subsection\<open>Monad Laws\<close>
 lemma left_id:
-  fixes f :: "'\<alpha> \<Rightarrow> 'b IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
-  shows "(IO_Monad.return a \<bind> f) = f a"
-  by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
+  fixes f :: "'\<alpha> \<Rightarrow> 'b io" \<comment> \<open>Make sure we use our \<^const>\<open>IO.bind\<close>.\<close>
+  shows "(IO.return a \<bind> f) = f a"
+  by(simp add: return_def IO.bind_def Abs_io_inverse Rep_io_inverse)
 
 lemma right_id:
-  fixes m :: "'\<alpha> IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
-  shows "(m \<bind> IO_Monad.return) = m"
-  by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
+  fixes m :: "'\<alpha> io" \<comment> \<open>Make sure we use our \<^const>\<open>IO.bind\<close>.\<close>
+  shows "(m \<bind> IO.return) = m"
+  by(simp add: return_def IO.bind_def Abs_io_inverse Rep_io_inverse)
     
 lemma bind_assoc:
-  fixes m :: "'\<alpha> IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
+  fixes m :: "'\<alpha> io" \<comment> \<open>Make sure we use our \<^const>\<open>IO.bind\<close>.\<close>
   shows "((m \<bind> f) \<bind> g) = (m \<bind> (\<lambda>x. f x \<bind> g))"
-  by(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
+  by(simp add: IO.bind_def Abs_io_inverse Abs_io_inject fun_eq_iff split: prod.splits)
 
 
 text \<open>
-  Don't expose our \<^const>\<open>IO_Monad.bind\<close> definition to code. Use the built-in definitions of the
+  Don't expose our \<^const>\<open>IO.bind\<close> definition to code. Use the built-in definitions of the
   target language.
 \<close>
-code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
+code_printing constant IO.bind \<rightharpoonup> (Haskell) "_ >>= _"
                                     and (SML) "bind"
-            | constant IO_Monad.return \<rightharpoonup> (Haskell) "return"
+            | constant IO.return \<rightharpoonup> (Haskell) "return"
                                     and (SML) "(() => _)"
 
 text\<open>SML does not come with a bind function. We just define it (hopefully correct).\<close>
@@ -111,15 +111,13 @@ fun bind x f () = f (x ()) ();
 code_reserved SML bind return
   
 text\<open>
-  Make sure the code generator does not try to define \<^typ>\<open>'\<alpha> IO\<close> by itself, but always uses
+  Make sure the code generator does not try to define \<^typ>\<open>'\<alpha> io\<close> by itself, but always uses
   the one of the target language.
-  For Haskell, this is the full qualified Prelude.IO.
-  For SML, we just ignore the IO.
+  For Haskell, this is the fully qualified Prelude.IO.
+  For SML, we wrap it in a nullary function.
 \<close>
-code_printing type_constructor IO \<rightharpoonup> (Haskell) "Prelude.IO _"
+code_printing type_constructor io \<rightharpoonup> (Haskell) "Prelude.IO _"
                                  and (SML) "unit -> _"
-code_reserved Haskell IO
-code_reserved SML IO
 
 subsection\<open>Code Generator Setup and Basic Functions\<close>
 text\<open>
@@ -138,8 +136,8 @@ A string literal in Isabelle is created with \<^term>\<open>STR ''foo'' :: Strin
 text\<open>Define IO functions in Isabelle without implementation.\<close>
 
 axiomatization
-  println :: "String.literal \<Rightarrow> unit IO" and
-  getLine :: "String.literal IO"
+  println :: "String.literal \<Rightarrow> unit io" and
+  getLine :: "String.literal io"
 
 code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
                               and (SML) "println"

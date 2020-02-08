@@ -5,13 +5,13 @@ begin
 text\<open>The main function, defined in Isabelle. It should have the right type in Haskell.\<close>
 definition main :: "unit IO" where
   "main \<equiv> do {
-               _ \<leftarrow> println (String.implode ''Hello World! What is your name?'');
+               _ \<leftarrow> println (STR ''Hello World! What is your name?'');
                name \<leftarrow> getLine;
-               println (String.implode (''Hello '' @ (String.explode name)))
+               println (STR ''Hello '' + name)
              }"
 
 export_code main in Haskell
-export_code main in Haskell module_name "Main" file "code"
+
 (*
   $ cd code
   $ runhaskell Main.hs

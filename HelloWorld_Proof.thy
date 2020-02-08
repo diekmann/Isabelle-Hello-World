@@ -40,7 +40,8 @@ locale io_stdio =
   and stdin_of::"\<^url> \<Rightarrow> string list"
 
   \<comment> \<open>Assumptions about \<^verbatim>\<open>STDIN\<close>:
-      Calling \<^const>\<open>println\<close> appends to the end of \<^verbatim>\<open>STDOUT\<close> and \<^const>\<open>getLine\<close> does not change anything.\<close>
+      Calling \<^const>\<open>println\<close> appends to the end of \<^verbatim>\<open>STDOUT\<close> and \<^const>\<open>getLine\<close> does not change
+      anything.\<close>
 assumes stdout_of_println[simp]:
     "stdout_of (exec (println str) world) = stdout_of world@[String.explode str]"
   and stdout_of_getLine[simp]:
@@ -68,7 +69,8 @@ begin
     let ?world1="exec (println (STR ''Hello World! What is your name?'')) world"
     let ?world2="exec getLine ?world1"
     have stdout_world2:
-      "literal.explode STR ''Hello World! What is your name?'' = ''Hello World! What is your name?''"
+      "literal.explode STR ''Hello World! What is your name?'' =
+       ''Hello World! What is your name?''"
       by code_simp
     from stdin_of_getLine[where stdin="[]", OF stdin] have stdin_world2:
       "eval getLine ?world1 = String.implode ''corny''"

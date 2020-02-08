@@ -28,22 +28,20 @@ lemma get_new_world_bind:
 
 text\<open>With the appropriate assumptions about @{const println} and @{const getLine}, we can even prove something.\<close>
 locale yolo =
-  --\<open>We model stdin and stdout as part of the @{typ real_world}. Note that we know nothing about @{typ real_world},
+  \<comment> \<open>We model stdin and stdout as part of the @{typ real_world}. Note that we know nothing about @{typ real_world},
      we just model that we can find stdin and stdout somewhere in there.\<close>
   fixes get_stdout::"real_world \<Rightarrow> string list"
   and get_stdin::"real_world \<Rightarrow> string list"
 
-  --\<open>Assumptions about stdin:
-      Calling @{const println} appends to the end of stdout and @{const getLine} does not change anything.
-    \<close>
+  \<comment> \<open>Assumptions about stdin:
+      Calling @{const println} appends to the end of stdout and @{const getLine} does not change anything.\<close>
 assumes get_stdout_println:
     "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world (println (STR str)) world) = stdout@[str]"
   and get_stdout_getLine:
     "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world getLine world) = stdout"
 
-  --\<open>Assumptions about stdin:
-      Calling @{const println} does not change anything and @{const getLine} removes the first element from the stdin stream.
-    \<close>
+  \<comment> \<open>Assumptions about stdin:
+      Calling @{const println} does not change anything and @{const getLine} removes the first element from the stdin stream.\<close>
   and get_stdin_println:
     "get_stdin world = stdin \<Longrightarrow> get_stdin (get_new_world (println (STR str)) world) = stdin"
   and get_stdin_getLine:

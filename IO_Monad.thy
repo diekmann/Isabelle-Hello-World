@@ -24,8 +24,8 @@ We use a total function. This implies the dangerous assumption that all IO funct
 *)
 
 text \<open>typedef gives us some convenient definitions. They must never end up in generated code.\<close>
-term Abs_IO --\<open>Takes a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"} and abstracts it to an @{typ "'a IO"}.\<close>
-term Rep_IO --\<open>Unpacks an @{typ "'a IO"} to a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"}\<close>
+term Abs_IO \<comment> \<open>Takes a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"} and abstracts it to an @{typ "'a IO"}.\<close>
+term Rep_IO \<comment> \<open>Unpacks an @{typ "'a IO"} to a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"}\<close>
 
 
 subsection\<open>Monad Operations\<close>
@@ -58,17 +58,17 @@ lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
 
 subsection\<open>Monad Laws\<close>
 lemma left_id:
-  fixes f :: "'a \<Rightarrow> 'b IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  fixes f :: "'a \<Rightarrow> 'b IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
   shows "(IO_Monad.return a >>= f)  =  f a"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
 
 lemma right_id:
-  fixes m :: "'a IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  fixes m :: "'a IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
   shows "(m >>= IO_Monad.return)  =  m"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
     
 lemma bind_assoc:
-  fixes m :: "'a IO" --\<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  fixes m :: "'a IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
   shows "((m >>= f) >>= g)  =  (m >>= (\<lambda>x. f x >>= g))"
   by(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
 

@@ -59,6 +59,11 @@ text \<open>
 hide_const (open) bind
 adhoc_overloading bind IO_Monad.bind
 
+text \<open>Thanks to \<^theory_text>\<open>adhoc_overloading\<close>, we can use monad syntax.\<close>
+lemma "bind (foo :: 'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
+  by simp
+
+
 definition return :: "'a \<Rightarrow> 'a IO" where [code del]:
   "return a \<equiv> Abs_IO (\<lambda>world. (a, world))"
 
@@ -72,10 +77,6 @@ text \<open>
   \<close>
 \<close>
 
-
-text \<open>We can use monad syntax.\<close>
-lemma "bind (foo :: 'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
-  by simp
 
 subsection\<open>Monad Laws\<close>
 lemma left_id:

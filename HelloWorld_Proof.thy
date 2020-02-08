@@ -67,20 +67,18 @@ begin
   proof -
     let ?world1="exec (println (STR ''Hello World! What is your name?'')) world"
     let ?world2="exec getLine ?world1"
-    from stdout have stdout_world2:
-      "stdout_of ?world2 = [''Hello World! What is your name?'']"
-      apply simp
-      apply code_simp
-      done
+    have stdout_world2:
+      "literal.explode STR ''Hello World! What is your name?'' = ''Hello World! What is your name?''"
+      by code_simp
     from stdin_of_getLine[where stdin="[]", OF stdin] have stdin_world2:
       "eval getLine ?world1 = String.implode ''corny''"
       by (simp add: stdin_of_getLine stdin)
     show ?thesis
-      unfolding main_def using stdout
-      apply(auto simp add: exec_bind)
-       apply code_simp
-      apply (subst stdin_world2)
-      apply (subst plus_literal.rep_eq)+
+      unfolding main_def
+      apply(simp add: exec_bind)
+      apply(simp add: stdout)
+      apply(simp add: stdout_world2 stdin_world2)
+      apply(simp add: plus_literal.rep_eq)
       apply code_simp
       done
   qed

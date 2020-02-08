@@ -21,6 +21,10 @@ definition main :: "unit IO" where
 
 export_code main checking Haskell SML
 
+export_code main in Haskell file "/tmp/yolo_hs"
+ML_val\<open>
+Isabelle_System.bash "cd /tmp/yolo_hs && echo 'Cyber Cat 42' | runhaskell HelloWorld"
+\<close>
 
 export_code main in SML file "/tmp/yolo.sml"
 

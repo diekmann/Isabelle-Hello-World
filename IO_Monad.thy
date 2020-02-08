@@ -158,12 +158,12 @@ code_reserved Haskell StdIO println getLine
 code_reserved SML println print getLine TextIO
 
 text\<open>Monad Syntax\<close>
-lemma "bind (println (String.implode ''foo''))
-            (\<lambda>_.  println (String.implode ''bar''))
-      = (println (String.implode ''foo'') \<bind> (\<lambda>_. println (String.implode ''bar'')))"
+lemma "bind (println (STR ''foo''))
+            (\<lambda>_.  println (STR ''bar''))
+      = (println (STR ''foo'') \<bind> (\<lambda>_. println (STR ''bar'')))"
   by(simp)
-lemma "do { _ \<leftarrow> println (String.implode ''foo'');
-            println (String.implode ''bar'')} =
-      (println (String.implode ''foo'') \<then> (println (String.implode ''bar'')))" by simp 
+lemma "do { _ \<leftarrow> println (STR ''foo'');
+            println (STR ''bar'')} =
+      (println (STR ''foo'') \<then> (println (STR ''bar'')))" by simp
 
 end

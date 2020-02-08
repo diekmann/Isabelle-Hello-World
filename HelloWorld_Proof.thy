@@ -25,7 +25,6 @@ lemma get_new_world_bind:
     "get_new_result (io1 \<bind> io2) world = get_new_result (io2 (get_new_result io1 world)) (get_new_world io1 world)"
   by(simp_all add: get_new_world_def get_new_result_def bind_def Abs_IO_inverse split_beta)
 
-
 text\<open>With the appropriate assumptions about @{const println} and @{const getLine}, we can even prove something.\<close>
 locale yolo =
   \<comment> \<open>We model stdin and stdout as part of the @{typ real_world}. Note that we know nothing about @{typ real_world},

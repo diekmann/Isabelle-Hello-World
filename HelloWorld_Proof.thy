@@ -25,8 +25,8 @@ lemma get_new_world_bind:
     "get_new_result (io1 \<bind> io2) world = get_new_result (io2 (get_new_result io1 world)) (get_new_world io1 world)"
   by(simp_all add: get_new_world_def get_new_result_def bind_def Abs_IO_inverse split_beta)
 
-text\<open>With the appropriate assumptions about @{const println} and @{const getLine}, we can even prove something.\<close>
-locale yolo =
+text\<open>With the appropriate assumptions about \<^const>\<open>println\<close> and \<^const>\<open>getLine\<close>, we can even prove something.\<close>
+locale io_stdinout =
   \<comment> \<open>We model stdin and stdout as part of the @{typ real_world}. Note that we know nothing about @{typ real_world},
      we just model that we can find stdin and stdout somewhere in there.\<close>
   fixes get_stdout::"real_world \<Rightarrow> string list"
@@ -34,24 +34,19 @@ locale yolo =
 
   \<comment> \<open>Assumptions about stdin:
       Calling @{const println} appends to the end of stdout and @{const getLine} does not change anything.\<close>
-assumes get_stdout_println:
-    "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world (println (STR str)) world) = stdout@[str]"
-  and get_stdout_getLine:
-    "get_stdout world = stdout \<Longrightarrow> get_stdout (get_new_world getLine world) = stdout"
+assumes get_stdout_println[simp]:
+    "get_stdout (get_new_world (println str) world) = get_stdout world@[String.explode str]"
+  and get_stdout_getLine[simp]:
+    "get_stdout (get_new_world getLine world) = get_stdout world"
 
   \<comment> \<open>Assumptions about stdin:
       Calling @{const println} does not change anything and @{const getLine} removes the first element from the stdin stream.\<close>
-  and get_stdin_println:
-    "get_stdin world = stdin \<Longrightarrow> get_stdin (get_new_world (println (STR str)) world) = stdin"
+  and get_stdin_println[simp]:
+    "get_stdin (get_new_world (println str) world) = get_stdin world"
   and get_stdin_getLine:
     "get_stdin world = inp#stdin \<Longrightarrow>
-     get_stdin (get_new_world getLine world) = stdin \<and> get_new_result getLine world = STR inp"
+     get_stdin (get_new_world getLine world) = stdin \<and> get_new_result getLine world = String.implode inp"
 begin
-
-lemma get_stdout_println_append:
-      "get_stdout world = stdout \<Longrightarrow> str1 = STR str2 \<Longrightarrow>
-        get_stdout (get_new_world (println str1) world) = stdout @ [str2]"
-  by(simp add: get_stdout_println)
 
 text\<open>Correctness of @{const main}:
   If stdout is initially empty and only @{term "''corny''"} will be typed into stdin, then the program will output:
@@ -60,19 +55,24 @@ text\<open>Correctness of @{const main}:
 lemma assumes stdout: "get_stdout world = []" and stdin: "get_stdin world = [''corny'']"
   shows "get_stdout (get_new_world main world) = [''Hello World! What is your name?'', ''Hello corny'']"
 proof -
-  let ?world1="get_new_world (println (String.implode ''Hello World! What is your name?'')) world"
+  let ?world1="get_new_world (println (STR ''Hello World! What is your name?'')) world"
   let ?world2="get_new_world getLine ?world1"
-  from get_stdout_println[OF stdout] have stdout_world2:
+  from stdout have stdout_world2:
     "get_stdout ?world2 = [''Hello World! What is your name?'']"
-    by (simp add: implode_def get_stdout_getLine)
+    apply simp
+    apply code_simp
+    done
   from get_stdin_getLine[where stdin="[]", OF stdin] have stdin_world2:
-    "get_new_result getLine ?world1 = STR ''corny''"
-    by (simp add: implode_def get_stdin_getLine get_stdin_println stdin)
+    "get_new_result getLine ?world1 = String.implode ''corny''"
+    by (simp add: get_stdin_getLine stdin)
   show ?thesis
-    apply(simp add: main_def)
-    apply(simp add: get_new_world_bind)
-    apply(rule get_stdout_println_append[OF stdout_world2, simplified])
-    using stdin_world2 by(simp add: implode_def STR_inverse)
+    unfolding main_def using stdout
+    apply(auto simp add: get_new_world_bind)
+     apply code_simp
+    apply (subst stdin_world2)
+    apply (subst plus_literal.rep_eq)
+    apply code_simp
+    done
 qed
 end
 

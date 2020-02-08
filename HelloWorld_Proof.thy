@@ -59,7 +59,7 @@ begin
 
   text\<open>Correctness of \<^const>\<open>main\<close>:
     If \<^verbatim>\<open>STDOUT\<close> is initially empty and only \<^term>\<open>''corny''\<close> will be typed into \<^verbatim>\<open>STDIN\<close>,
-    then the program will output: \<^term>\<open>[''Hello World! What is your name?'', ''Hello corny'']\<close>.
+    then the program will output: \<^term>\<open>[''Hello World! What is your name?'', ''Hello, corny!'']\<close>.
   \<close>
   lemma
     assumes stdout: "stdout_of world = []"
@@ -67,7 +67,6 @@ begin
     shows "stdout_of (exec main world) = [''Hello World! What is your name?'', ''Hello, corny!'']"
   proof -
     let ?world1="exec (println (STR ''Hello World! What is your name?'')) world"
-    let ?world2="exec getLine ?world1"
     have stdout_world2:
       "literal.explode STR ''Hello World! What is your name?'' =
        ''Hello World! What is your name?''"

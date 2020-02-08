@@ -6,8 +6,8 @@ section\<open>Hello, World!\<close>
 
 text\<open>
   The idea of a \<^term>\<open>main :: unit io\<close> function is that, upon start of your program, you will be
-  handed a value of type \<^typ>\<open>real_world\<close>. You can pass this world through your code and modify it.
-  Be careful with the \<^typ>\<open>real_world\<close>, it's the only one we have.
+  handed a value of type \<^typ>\<open>\<^url>\<close>. You can pass this world through your code and modify it.
+  Be careful with the \<^typ>\<open>\<^url>\<close>, it's the only one we have.
 \<close>
 
 

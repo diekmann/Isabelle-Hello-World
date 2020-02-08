@@ -13,17 +13,24 @@ typedecl real_world
 
 subsection\<open>IO Monad\<close>
 text \<open>The set of all functions which take a @{typ real_world} and return an @{typ 'a} and a @{typ real_world}.\<close>
+
 typedef 'a IO = "UNIV :: (real_world \<Rightarrow> 'a \<times> real_world) set"
 proof -
   show "\<exists>x. x \<in> UNIV" by simp
 qed
-(*Programming TLS in Isabelle/HOL by Andreas Lochbihler and Marc Züst uses a partial function (\<rightharpoonup>)!
-typedecl real_world
-typedef 'a IO = "UNIV :: (real_world \<rightharpoonup> 'a \<times> real_world) set" by simp
-We use a total function. This implies the dangerous assumption that all IO functions are total (e.g. terminate).
-*)
 
-text \<open>typedef gives us some convenient definitions. They must never end up in generated code.\<close>
+text \<open>
+  \<^emph>\<open>Programming TLS in Isabelle/HOL\<close> by Andreas Lochbihler and Marc Züst uses a partial function
+  (\<open>\<rightharpoonup>\<close>).
+  \<^theory_text>\<open>
+    typedecl real_world
+    typedef 'a IO = "UNIV :: (real_world \<rightharpoonup> 'a \<times> real_world) set" by simp
+  \<close>
+  We use a total function. This implies the dangerous assumption that all IO functions are total
+  (i.e., terminate).
+\<close>
+
+text \<open>\<^theory_text>\<open>typedef\<close> gives us some convenient definitions. They should not end up in generated code.\<close>
 term Abs_IO \<comment> \<open>Takes a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"} and abstracts it to an @{typ "'a IO"}.\<close>
 term Rep_IO \<comment> \<open>Unpacks an @{typ "'a IO"} to a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"}\<close>
 
@@ -34,46 +41,60 @@ definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> '
                                   let (a, world1) = (Rep_IO action1) world0;
                                       (b, world2) = (Rep_IO (action2 a)) world1
                                   in (b, world2))"
-(* Haskell:
-(>>=) :: IO a -> (a -> IO b) -> IO b
-(action1 >>= action2) world0 =
-   let (a, world1) = action1 world0
-       (b, world2) = action2 a world1
-   in (b, world2)
-*)
+
+text \<open>
+  In Haskell:
+  \<^verbatim>\<open>
+    (>>=) :: IO a -> (a -> IO b) -> IO b
+    (action1 >>= action2) world0 =
+       let (a, world1) = action1 world0
+           (b, world2) = action2 a world1
+       in (b, world2)
+  \<close>
+\<close>
+
 hide_const (open) bind
 adhoc_overloading bind IO_Monad.bind
 
 definition return :: "'a \<Rightarrow> 'a IO" where [code del]:
   "return a \<equiv> Abs_IO (\<lambda>world. (a, world))"
-(*
-return :: a -> IO a
-return a world0  =  (a, world0)
-*)
+
 hide_const (open) return
 
-text\<open>We can use monad syntax.\<close>
-lemma "bind (foo::'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
-  by(simp)
+text \<open>
+  In Haskell:
+  \<^verbatim>\<open>
+    return :: a -> IO a
+    return a world0  =  (a, world0)
+  \<close>
+\<close>
+
+
+text \<open>We can use monad syntax.\<close>
+lemma "bind (foo :: 'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
+  by simp
 
 subsection\<open>Monad Laws\<close>
 lemma left_id:
   fixes f :: "'a \<Rightarrow> 'b IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
-  shows "(IO_Monad.return a >>= f)  =  f a"
+  shows "(IO_Monad.return a \<bind> f) = f a"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
 
 lemma right_id:
   fixes m :: "'a IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
-  shows "(m >>= IO_Monad.return)  =  m"
+  shows "(m \<bind> IO_Monad.return) = m"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
     
 lemma bind_assoc:
   fixes m :: "'a IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
-  shows "((m >>= f) >>= g)  =  (m >>= (\<lambda>x. f x >>= g))"
+  shows "((m \<bind> f) \<bind> g) = (m \<bind> (\<lambda>x. f x \<bind> g))"
   by(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
 
 
-text\<open>Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the target language.\<close>
+text \<open>
+  Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the
+  target language.
+\<close>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
                                     and (SML) "bind"
             | constant IO_Monad.return \<rightharpoonup> (Haskell) "return"
@@ -86,10 +107,12 @@ fun return x = fn y => x; (** TODO really?**)
 \<close>
 code_reserved SML bind return
   
-text\<open>Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
-     the one of the target language.
-     For Haskell, this is the full qualified Prelude.IO.
-     For SML, we just ignore the IO.\<close>
+text\<open>
+  Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
+  the one of the target language.
+  For Haskell, this is the full qualified Prelude.IO.
+  For SML, we just ignore the IO.
+\<close>
 code_printing type_constructor IO \<rightharpoonup> (Haskell) "Prelude.IO _"
                                  and (SML) "_"
 code_reserved Haskell IO
@@ -100,19 +123,6 @@ text\<open>
 In Isabelle, a @{typ string} is just a type synonym for @{typ "char list"}.
 Consequently, translating a @{typ string} to Haskell yields a [Prelude.Char].
 The Isabelle @{typ String.literal} gets translated to a Haskell String.\<close>
-(*Exercise to the reader: Is this actually correct?
-Does the string model of Isabelle actually correspond to the one of the target language?
-What is a string?
-A list of integers in the range of [0..255]? This is what Isabelle2016-1 thinks.
-A list of bytes, i.e. 8 words?
-A list of ASCII chars, i.e. a list of 8 words where the most significant bit is always 0?
-A list of printable ASCII chars?
-A list of bytes, interpreted as unicode?
-A well-formed utf-8 string? Normalized?
-A well-formed utf-16 string?
-A list of unicode code points? Well-formed? Well-formed utf-32?
-...
-*)
 
 text\<open>Define IO functions in Isabelle without implementation.\<close>
 consts println :: "String.literal \<Rightarrow> unit IO"

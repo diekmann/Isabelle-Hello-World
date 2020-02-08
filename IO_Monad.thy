@@ -4,7 +4,7 @@ theory IO_Monad
 begin
 
 section\<open>Isabelle IO Monad inspired by Haskell\<close>
-text \<open>Definitions from @{url "https://wiki.haskell.org/IO_inside"}\<close>
+text \<open>Definitions from \<^url>\<open>https://wiki.haskell.org/IO_inside\<close>\<close>
 
 subsection\<open>Real World\<close>
 text \<open>Model the real world with a fake type. Dangerous.
@@ -12,7 +12,7 @@ Models an arbitrary type we cannot reason about. Don't reason about the complete
 typedecl real_world
 
 subsection\<open>IO Monad\<close>
-text \<open>The set of all functions which take a @{typ real_world} and return an @{typ 'a} and a @{typ real_world}.\<close>
+text \<open>The set of all functions which take a \<^typ>\<open>real_world\<close> and return an \<^typ>\<open>'a\<close> and a \<^typ>\<open>real_world\<close>.\<close>
 
 typedef 'a IO = "UNIV :: (real_world \<Rightarrow> 'a \<times> real_world) set"
 proof -
@@ -30,9 +30,12 @@ text \<open>
   (i.e., terminate).
 \<close>
 
-text \<open>\<^theory_text>\<open>typedef\<close> gives us some convenient definitions. They should not end up in generated code.\<close>
-term Abs_IO \<comment> \<open>Takes a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"} and abstracts it to an @{typ "'a IO"}.\<close>
-term Rep_IO \<comment> \<open>Unpacks an @{typ "'a IO"} to a @{typ "(real_world \<Rightarrow> 'a \<times> real_world)"}\<close>
+text \<open>
+  The \<^theory_text>\<open>typedef\<close> above gives us some convenient definitions.
+  They should not end up in generated code.
+\<close>
+term Abs_IO \<comment> \<open>Takes a \<^typ>\<open>(real_world \<Rightarrow> 'a \<times> real_world)\<close> and abstracts it to an \<^typ>\<open>'a IO\<close>.\<close>
+term Rep_IO \<comment> \<open>Unpacks an \<^typ>\<open>'a IO\<close> to a \<^typ>\<open>(real_world \<Rightarrow> 'a \<times> real_world)\<close>\<close>
 
 
 subsection\<open>Monad Operations\<close>
@@ -76,23 +79,23 @@ lemma "bind (foo :: 'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)
 
 subsection\<open>Monad Laws\<close>
 lemma left_id:
-  fixes f :: "'a \<Rightarrow> 'b IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  fixes f :: "'a \<Rightarrow> 'b IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
   shows "(IO_Monad.return a \<bind> f) = f a"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
 
 lemma right_id:
-  fixes m :: "'a IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  fixes m :: "'a IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
   shows "(m \<bind> IO_Monad.return) = m"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
     
 lemma bind_assoc:
-  fixes m :: "'a IO" \<comment> \<open>Make sure we use our @{const IO_Monad.bind}.\<close>
+  fixes m :: "'a IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
   shows "((m \<bind> f) \<bind> g) = (m \<bind> (\<lambda>x. f x \<bind> g))"
   by(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
 
 
 text \<open>
-  Don't expose our @{const IO_Monad.bind} definition to code. Use the built-in definitions of the
+  Don't expose our \<^const>\<open>IO_Monad.bind\<close> definition to code. Use the built-in definitions of the
   target language.
 \<close>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
@@ -107,7 +110,7 @@ fun bind x f () = f (x ()) ();
 code_reserved SML bind return
   
 text\<open>
-  Make sure the code generator does not try to define @{typ "'a IO"} by itself, but always uses
+  Make sure the code generator does not try to define \<^typ>\<open>'a IO\<close> by itself, but always uses
   the one of the target language.
   For Haskell, this is the full qualified Prelude.IO.
   For SML, we just ignore the IO.
@@ -119,13 +122,13 @@ code_reserved SML IO
 
 subsection\<open>Code Generator Setup and Basic Functions\<close>
 text\<open>
-In Isabelle, a @{typ string} is just a type synonym for @{typ "char list"}.
-When translating a @{typ string} to Haskell, Isabelle does not use Haskell's \<^verbatim>\<open>String\<close> or 
+In Isabelle, a \<^typ>\<open>string\<close> is just a type synonym for \<^typ>\<open>char list\<close>.
+When translating a \<^typ>\<open>string\<close> to Haskell, Isabelle does not use Haskell's \<^verbatim>\<open>String\<close> or 
 \<^verbatim>\<open>[Prelude.Char]\<close>. Instead, Isabelle serializes its own
   \<^verbatim>\<open>data Char = Char Bool Bool Bool Bool Bool Bool Bool Bool\<close>.
 The resulting code will look just ugly.
 
-To use the native strings of Haskell, we use the Isabelle type @{typ String.literal}.
+To use the native strings of Haskell, we use the Isabelle type \<^typ>\<open>String.literal\<close>.
 This gets translated to a Haskell \<^verbatim>\<open>String\<close>.
 
 A string literal in Isabelle is created with \<^term>\<open>STR ''foo'' :: String.literal\<close>.
@@ -142,7 +145,7 @@ code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
             | constant getLine \<rightharpoonup> (Haskell) "StdIO.getLine"
                               and (SML) "getLine"
 
-text \<open>A Haskell module named StdIO which just implements println and getLine.\<close>
+text \<open>A Haskell module named \<^verbatim>\<open>StdIO\<close> which just implements \<^verbatim>\<open>println\<close> and \<^verbatim>\<open>getLine\<close>.\<close>
 code_printing code_module StdIO \<rightharpoonup> (Haskell) \<open>
 module StdIO (println, getLine) where
 import qualified Prelude (putStrLn, getLine)

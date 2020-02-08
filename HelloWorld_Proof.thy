@@ -5,11 +5,11 @@ begin
 text\<open>
   Apply some function \<^term>\<open>iofun\<close> to a specific world and return the new world
   (discarding the result of \<^term>\<open>iofun\<close>).\<close>
-definition get_new_world :: "'a IO \<Rightarrow> \<^url> \<Rightarrow> \<^url>" where
+definition get_new_world :: "'\<alpha> IO \<Rightarrow> \<^url> \<Rightarrow> \<^url>" where
   "get_new_world iofun world = snd (Rep_IO iofun world)"
 
 text\<open>Similar, but only get the result.\<close>
-definition get_new_result :: "'a IO \<Rightarrow> \<^url> \<Rightarrow> 'a" where
+definition get_new_result :: "'\<alpha> IO \<Rightarrow> \<^url> \<Rightarrow> '\<alpha>" where
   "get_new_result iofun world = fst (Rep_IO iofun world)"
 
 lemma get_new_world_Abs_IO: "get_new_world (Abs_IO f) world = snd (f world)"

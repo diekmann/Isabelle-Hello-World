@@ -12,9 +12,9 @@ Models an arbitrary type we cannot reason about. Don't reason about the complete
 typedecl real_world (\<open>\<^url>\<close>)
 
 subsection\<open>IO Monad\<close>
-text \<open>The set of all functions which take a \<^typ>\<open>\<^url>\<close> and return an \<^typ>\<open>'a\<close> and a \<^typ>\<open>\<^url>\<close>.\<close>
+text \<open>The set of all functions which take a \<^typ>\<open>\<^url>\<close> and return an \<^typ>\<open>'\<alpha>\<close> and a \<^typ>\<open>\<^url>\<close>.\<close>
 
-typedef 'a IO = "UNIV :: (\<^url> \<Rightarrow> 'a \<times> \<^url>) set"
+typedef '\<alpha> IO = "UNIV :: (\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>) set"
 proof -
   show "\<exists>x. x \<in> UNIV" by simp
 qed
@@ -24,7 +24,7 @@ text \<open>
   (\<open>\<rightharpoonup>\<close>).
   \<^theory_text>\<open>
     typedecl real_world
-    typedef 'a IO = "UNIV :: (real_world \<rightharpoonup> 'a \<times> real_world) set" by simp
+    typedef '\<alpha> IO = "UNIV :: (real_world \<rightharpoonup> '\<alpha> \<times> real_world) set" by simp
   \<close>
   We use a total function. This implies the dangerous assumption that all IO functions are total
   (i.e., terminate).
@@ -34,12 +34,12 @@ text \<open>
   The \<^theory_text>\<open>typedef\<close> above gives us some convenient definitions.
   They should not end up in generated code.
 \<close>
-term Abs_IO \<comment> \<open>Takes a \<^typ>\<open>(\<^url> \<Rightarrow> 'a \<times> \<^url>)\<close> and abstracts it to an \<^typ>\<open>'a IO\<close>.\<close>
-term Rep_IO \<comment> \<open>Unpacks an \<^typ>\<open>'a IO\<close> to a \<^typ>\<open>(\<^url> \<Rightarrow> 'a \<times> \<^url>)\<close>\<close>
+term Abs_IO \<comment> \<open>Takes a \<^typ>\<open>(\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>)\<close> and abstracts it to an \<^typ>\<open>'\<alpha> IO\<close>.\<close>
+term Rep_IO \<comment> \<open>Unpacks an \<^typ>\<open>'\<alpha> IO\<close> to a \<^typ>\<open>(\<^url> \<Rightarrow> '\<alpha> \<times> \<^url>)\<close>\<close>
 
 
 subsection\<open>Monad Operations\<close>
-definition bind :: "'a IO \<Rightarrow> ('a \<Rightarrow> 'b IO) \<Rightarrow> 'b IO" where [code del]:
+definition bind :: "'\<alpha> IO \<Rightarrow> ('\<alpha> \<Rightarrow> 'b IO) \<Rightarrow> 'b IO" where [code del]:
   "bind action1 action2 = Abs_IO (\<lambda>world0.
                                   let (a, world1) = (Rep_IO action1) world0;
                                       (b, world2) = (Rep_IO (action2 a)) world1
@@ -60,11 +60,11 @@ hide_const (open) bind
 adhoc_overloading bind IO_Monad.bind
 
 text \<open>Thanks to \<^theory_text>\<open>adhoc_overloading\<close>, we can use monad syntax.\<close>
-lemma "bind (foo :: 'a IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
+lemma "bind (foo :: '\<alpha> IO) (\<lambda>a. bar a) = foo \<bind> (\<lambda>a. bar a)"
   by simp
 
 
-definition return :: "'a \<Rightarrow> 'a IO" where [code del]:
+definition return :: "'\<alpha> \<Rightarrow> '\<alpha> IO" where [code del]:
   "return a \<equiv> Abs_IO (\<lambda>world. (a, world))"
 
 hide_const (open) return
@@ -80,17 +80,17 @@ text \<open>
 
 subsection\<open>Monad Laws\<close>
 lemma left_id:
-  fixes f :: "'a \<Rightarrow> 'b IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
+  fixes f :: "'\<alpha> \<Rightarrow> 'b IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
   shows "(IO_Monad.return a \<bind> f) = f a"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
 
 lemma right_id:
-  fixes m :: "'a IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
+  fixes m :: "'\<alpha> IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
   shows "(m \<bind> IO_Monad.return) = m"
   by(simp add: return_def IO_Monad.bind_def Abs_IO_inverse Rep_IO_inverse)
     
 lemma bind_assoc:
-  fixes m :: "'a IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
+  fixes m :: "'\<alpha> IO" \<comment> \<open>Make sure we use our \<^const>\<open>IO_Monad.bind\<close>.\<close>
   shows "((m \<bind> f) \<bind> g) = (m \<bind> (\<lambda>x. f x \<bind> g))"
   by(simp add: IO_Monad.bind_def Abs_IO_inverse Abs_IO_inject fun_eq_iff split: prod.splits)
 
@@ -111,7 +111,7 @@ fun bind x f () = f (x ()) ();
 code_reserved SML bind return
   
 text\<open>
-  Make sure the code generator does not try to define \<^typ>\<open>'a IO\<close> by itself, but always uses
+  Make sure the code generator does not try to define \<^typ>\<open>'\<alpha> IO\<close> by itself, but always uses
   the one of the target language.
   For Haskell, this is the full qualified Prelude.IO.
   For SML, we just ignore the IO.
@@ -163,11 +163,12 @@ code_reserved SML println print getLine TextIO
 
 text\<open>Monad Syntax\<close>
 lemma "bind (println (STR ''foo''))
-            (\<lambda>_.  println (STR ''bar''))
-      = (println (STR ''foo'') \<bind> (\<lambda>_. println (STR ''bar'')))"
-  by(simp)
+            (\<lambda>_.  println (STR ''bar'')) =
+       println (STR ''foo'') \<bind> (\<lambda>_. println (STR ''bar''))"
+  by simp 
 lemma "do { _ \<leftarrow> println (STR ''foo'');
             println (STR ''bar'')} =
-      (println (STR ''foo'') \<then> (println (STR ''bar'')))" by simp
+      println (STR ''foo'') \<then> (println (STR ''bar''))"
+  by simp
 
 end

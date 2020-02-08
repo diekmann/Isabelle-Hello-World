@@ -19,7 +19,7 @@ definition main :: "unit IO" where
                println (STR ''Hello, '' + name + STR ''!'')
              }"
 
-export_code main checking Haskell SML
+export_code main checking Haskell? SML
 
 export_code main in Haskell file "/tmp/yolo_hs"
 ML_val\<open>

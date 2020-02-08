@@ -2,8 +2,6 @@ theory HelloWorld
   imports IO_Monad
 begin
 
-
-
 text\<open>The main function, defined in Isabelle. It should have the right type in Haskell.\<close>
 definition main :: "unit IO" where
   "main \<equiv> do {
@@ -12,9 +10,6 @@ definition main :: "unit IO" where
                println (STR ''Hello '' + name)
              }"
 
-export_code main checking Haskell
-
-
-export_code main in SML
+export_code main checking Haskell SML
 
 end

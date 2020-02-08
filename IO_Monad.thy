@@ -144,9 +144,10 @@ code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
 
 text \<open>A Haskell module named StdIO which just implements println and getLine.\<close>
 code_printing code_module StdIO \<rightharpoonup> (Haskell) \<open>
-import qualified Prelude (putStrLn, getLine);
-println = Prelude.putStrLn;
-getLine = Prelude.getLine;
+module StdIO (println, getLine) where
+import qualified Prelude (putStrLn, getLine)
+println = Prelude.putStrLn
+getLine = Prelude.getLine
 \<close>                              and (SML) \<open>
 fun println s () = TextIO.print (s ^ "\n");
 fun getLine () = case (TextIO.inputLine TextIO.stdIn) of

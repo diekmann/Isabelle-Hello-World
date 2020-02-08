@@ -39,11 +39,11 @@ term Rep_io \<comment> \<open>Unpacks an \<^typ>\<open>'\<alpha> io\<close> to a
 
 
 subsection\<open>Monad Operations\<close>
-definition bind :: "'\<alpha> io \<Rightarrow> ('\<alpha> \<Rightarrow> 'b io) \<Rightarrow> 'b io" where [code del]:
-  "bind action1 action2 = Abs_io (\<lambda>world0.
-                                  let (a, world1) = (Rep_io action1) world0;
-                                      (b, world2) = (Rep_io (action2 a)) world1
-                                  in (b, world2))"
+definition bind :: "'\<alpha> io \<Rightarrow> ('\<alpha> \<Rightarrow> '\<beta> io) \<Rightarrow> '\<beta> io" where [code del]:
+  "bind action\<^sub>1 action\<^sub>2 = Abs_io (\<lambda>world\<^sub>0.
+                                  let (a, world\<^sub>1) = (Rep_io action\<^sub>1) world\<^sub>0;
+                                      (b, world\<^sub>2) = (Rep_io (action\<^sub>2 a)) world\<^sub>1
+                                  in (b, world\<^sub>2))"
 
 text \<open>
   In Haskell:
@@ -80,7 +80,7 @@ text \<open>
 
 subsection\<open>Monad Laws\<close>
 lemma left_id:
-  fixes f :: "'\<alpha> \<Rightarrow> 'b io" \<comment> \<open>Make sure we use our \<^const>\<open>IO.bind\<close>.\<close>
+  fixes f :: "'\<alpha> \<Rightarrow> '\<beta> io" \<comment> \<open>Make sure we use our \<^const>\<open>IO.bind\<close>.\<close>
   shows "(IO.return a \<bind> f) = f a"
   by(simp add: return_def IO.bind_def Abs_io_inverse Rep_io_inverse)
 

@@ -120,8 +120,16 @@ code_reserved SML IO
 subsection\<open>Code Generator Setup and Basic Functions\<close>
 text\<open>
 In Isabelle, a @{typ string} is just a type synonym for @{typ "char list"}.
-Consequently, translating a @{typ string} to Haskell yields a [Prelude.Char].
-The Isabelle @{typ String.literal} gets translated to a Haskell String.\<close>
+When translating a @{typ string} to Haskell, Isabelle does not use Haskell's \<^verbatim>\<open>String\<close> or 
+\<^verbatim>\<open>[Prelude.Char]\<close>. Instead, Isabelle serializes its own
+  \<^verbatim>\<open>data Char = Char Bool Bool Bool Bool Bool Bool Bool Bool\<close>.
+The resulting code will look just ugly.
+
+To use the native strings of Haskell, we use the Isabelle type @{typ String.literal}.
+This gets translated to a Haskell \<^verbatim>\<open>String\<close>.
+
+A string literal in Isabelle is created with \<^term>\<open>STR ''foo'' :: String.literal\<close>.
+\<close>
 
 text\<open>Define IO functions in Isabelle without implementation.\<close>
 

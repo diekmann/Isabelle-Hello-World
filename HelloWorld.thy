@@ -21,6 +21,12 @@ definition main :: "unit io" where
 
 export_code main checking Haskell? SML
 
+section\<open>Running the Generated Code\<close>
+text\<open>The following examples show how to run the executed code outside Isabelle.\<close>
+
+(*Maintainer note: We invoke the generated code ON PURPOSE from bash to demonstrate how to use
+  the generated code from outside Isabelle.*)
+
 export_code main in Haskell file "/tmp/yolo_hs"
 ML_val\<open>
 if Isabelle_System.bash "which runhaskell" = 0 then

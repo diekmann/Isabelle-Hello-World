@@ -30,7 +30,7 @@ executes
 $ runhaskell Main.hs
 Hello World! What is your name?
 Corny
-Hello Corny
+Hello, Corny!
 ```
 
 

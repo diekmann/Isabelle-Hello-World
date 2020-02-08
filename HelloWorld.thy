@@ -1,6 +1,5 @@
 theory HelloWorld
   imports IO_Monad
-    "~~/src/HOL/Library/Code_Char" (*must be loaded at the end*)
 begin
 
 text\<open>The main function, defined in Isabelle. It should have the right type in Haskell.\<close>

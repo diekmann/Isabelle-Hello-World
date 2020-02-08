@@ -1,6 +1,6 @@
 theory IO_Monad
   imports Main
-    "~~/src/HOL/Library/Monad_Syntax"
+    "HOL-Library.Monad_Syntax"
 begin
 
 section\<open>Isabelle IO Monad inspired by Haskell\<close>

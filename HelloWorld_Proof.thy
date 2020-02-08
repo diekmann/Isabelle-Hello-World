@@ -5,11 +5,11 @@ begin
 text\<open>
   Apply some function \<^term>\<open>iofun\<close> to a specific world and return the new world
   (discarding the result of \<^term>\<open>iofun\<close>).\<close>
-definition get_new_world :: "'a IO \<Rightarrow> real_world \<Rightarrow> real_world" where
+definition get_new_world :: "'a IO \<Rightarrow> \<^url> \<Rightarrow> \<^url>" where
   "get_new_world iofun world = snd (Rep_IO iofun world)"
 
 text\<open>Similar, but only get the result.\<close>
-definition get_new_result :: "'a IO \<Rightarrow> real_world \<Rightarrow> 'a" where
+definition get_new_result :: "'a IO \<Rightarrow> \<^url> \<Rightarrow> 'a" where
   "get_new_result iofun world = fst (Rep_IO iofun world)"
 
 lemma get_new_world_Abs_IO: "get_new_world (Abs_IO f) world = snd (f world)"
@@ -32,11 +32,11 @@ text\<open>
   we can even prove something.
 \<close>
 locale io_stdinout =
-  \<comment> \<open>We model stdin and stdout as part of the \<^typ>\<open>real_world\<close>.
-     Note that we know nothing about \<^typ>\<open>real_world\<close>,
+  \<comment> \<open>We model stdin and stdout as part of the \<^typ>\<open>\<^url>\<close>.
+     Note that we know nothing about \<^typ>\<open>\<^url>\<close>,
      we just model that we can find stdin and stdout somewhere in there.\<close>
-  fixes get_stdout::"real_world \<Rightarrow> string list"
-  and get_stdin::"real_world \<Rightarrow> string list"
+  fixes get_stdout::"\<^url> \<Rightarrow> string list"
+  and get_stdin::"\<^url> \<Rightarrow> string list"
 
   \<comment> \<open>Assumptions about stdin:
       Calling \<^const>\<open>println\<close> appends to the end of stdout and \<^const>\<open>getLine\<close> does not change anything.\<close>

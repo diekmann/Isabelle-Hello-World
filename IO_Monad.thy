@@ -9,12 +9,12 @@ text \<open>Definitions from \<^url>\<open>https://wiki.haskell.org/IO_inside\<c
 subsection\<open>Real World\<close>
 text \<open>Model the real world with a fake type. Dangerous.
 Models an arbitrary type we cannot reason about. Don't reason about the complete world!\<close>
-typedecl real_world
+typedecl real_world (\<open>\<^url>\<close>)
 
 subsection\<open>IO Monad\<close>
-text \<open>The set of all functions which take a \<^typ>\<open>real_world\<close> and return an \<^typ>\<open>'a\<close> and a \<^typ>\<open>real_world\<close>.\<close>
+text \<open>The set of all functions which take a \<^typ>\<open>\<^url>\<close> and return an \<^typ>\<open>'a\<close> and a \<^typ>\<open>\<^url>\<close>.\<close>
 
-typedef 'a IO = "UNIV :: (real_world \<Rightarrow> 'a \<times> real_world) set"
+typedef 'a IO = "UNIV :: (\<^url> \<Rightarrow> 'a \<times> \<^url>) set"
 proof -
   show "\<exists>x. x \<in> UNIV" by simp
 qed
@@ -34,8 +34,8 @@ text \<open>
   The \<^theory_text>\<open>typedef\<close> above gives us some convenient definitions.
   They should not end up in generated code.
 \<close>
-term Abs_IO \<comment> \<open>Takes a \<^typ>\<open>(real_world \<Rightarrow> 'a \<times> real_world)\<close> and abstracts it to an \<^typ>\<open>'a IO\<close>.\<close>
-term Rep_IO \<comment> \<open>Unpacks an \<^typ>\<open>'a IO\<close> to a \<^typ>\<open>(real_world \<Rightarrow> 'a \<times> real_world)\<close>\<close>
+term Abs_IO \<comment> \<open>Takes a \<^typ>\<open>(\<^url> \<Rightarrow> 'a \<times> \<^url>)\<close> and abstracts it to an \<^typ>\<open>'a IO\<close>.\<close>
+term Rep_IO \<comment> \<open>Unpacks an \<^typ>\<open>'a IO\<close> to a \<^typ>\<open>(\<^url> \<Rightarrow> 'a \<times> \<^url>)\<close>\<close>
 
 
 subsection\<open>Monad Operations\<close>

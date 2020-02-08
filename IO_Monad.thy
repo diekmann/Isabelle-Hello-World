@@ -98,12 +98,11 @@ text \<open>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
                                     and (SML) "bind"
             | constant IO_Monad.return \<rightharpoonup> (Haskell) "return"
-                                    and (SML) "return"
+                                    and (SML) "_"
 
 text\<open>SML does not come with a bind function. We just define it (hopefully correct).\<close>
 code_printing code_module Bind \<rightharpoonup> (SML) \<open>
 fun bind x f = f x;
-fun return x = fn y => x; (** TODO really?**)
 \<close>
 code_reserved SML bind return
   
@@ -125,12 +124,15 @@ Consequently, translating a @{typ string} to Haskell yields a [Prelude.Char].
 The Isabelle @{typ String.literal} gets translated to a Haskell String.\<close>
 
 text\<open>Define IO functions in Isabelle without implementation.\<close>
-consts println :: "String.literal \<Rightarrow> unit IO"
-consts getLine :: "String.literal IO"
+
+axiomatization
+  println :: "String.literal \<Rightarrow> unit IO" and
+  getLine :: "String.literal IO"
+
 code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
                               and (SML) "print (_ ^ \"\\n\")" (*adding newline manually*)
             | constant getLine \<rightharpoonup> (Haskell) "StdIO.getLine"
-                              and (SML) "getLine"
+                              and (SML) "getLine ()"
 
 text \<open>A Haskell module named StdIO which just implements println and getLine.\<close>
 code_printing code_module StdIO \<rightharpoonup> (Haskell) \<open>
@@ -138,13 +140,12 @@ import qualified Prelude (putStrLn, getLine);
 println = Prelude.putStrLn;
 getLine = Prelude.getLine;
 \<close>                              and (SML) \<open>
-val getLine = case (TextIO.inputLine TextIO.stdIn)
-                   of SOME s => s
-                    | NONE => raise Fail "getLine";
+fun getLine () = case (TextIO.inputLine TextIO.stdIn) of
+                  SOME s => s
+                | NONE => raise Fail "getLine";
 \<close>
 code_reserved Haskell StdIO println getLine
 code_reserved SML println print getLine TextIO
-
 
 text\<open>Monad Syntax\<close>
 lemma "bind (println (String.implode ''foo''))
@@ -155,13 +156,4 @@ lemma "do { _ \<leftarrow> println (String.implode ''foo'');
             println (String.implode ''bar'')} =
       (println (String.implode ''foo'') \<then> (println (String.implode ''bar'')))" by simp 
 
-
-
-  (* failed attempt to get value[code] working
-setup_lifting type_definition_IO
-value "term_of_class.term_of (x::real_world)"
-value "term_of_class.term_of x"
-value "term_of_class.term_of (Rep_IO::unit IO \<Rightarrow> real_world \<Rightarrow> unit \<times> real_world)"
-value[code] "main"
-  *)
 end

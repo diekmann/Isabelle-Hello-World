@@ -55,32 +55,32 @@ assumes get_stdout_println[simp]:
      get_stdin (get_new_world getLine world) = stdin \<and> get_new_result getLine world = String.implode inp"
 begin
 
-text\<open>Correctness of \<^const>\<open>main\<close>:
-  If stdout is initially empty and only \<^term>\<open>''corny''\<close> will be typed into stdin,
-  then the program will output: \<^term>\<open>[''Hello World! What is your name?'', ''Hello corny'']\<close>.
-\<close>
-lemma assumes stdout: "get_stdout world = []" and stdin: "get_stdin world = [''corny'']"
-  shows "get_stdout (get_new_world main world) = [''Hello World! What is your name?'', ''Hello, corny!'']"
-proof -
-  let ?world1="get_new_world (println (STR ''Hello World! What is your name?'')) world"
-  let ?world2="get_new_world getLine ?world1"
-  from stdout have stdout_world2:
-    "get_stdout ?world2 = [''Hello World! What is your name?'']"
-    apply simp
-    apply code_simp
-    done
-  from get_stdin_getLine[where stdin="[]", OF stdin] have stdin_world2:
-    "get_new_result getLine ?world1 = String.implode ''corny''"
-    by (simp add: get_stdin_getLine stdin)
-  show ?thesis
-    unfolding main_def using stdout
-    apply(auto simp add: get_new_world_bind)
-     apply code_simp
-    apply (subst stdin_world2)
-    apply (subst plus_literal.rep_eq)+
-    apply code_simp
-    done
-qed
+  text\<open>Correctness of \<^const>\<open>main\<close>:
+    If stdout is initially empty and only \<^term>\<open>''corny''\<close> will be typed into stdin,
+    then the program will output: \<^term>\<open>[''Hello World! What is your name?'', ''Hello corny'']\<close>.
+  \<close>
+  lemma assumes stdout: "get_stdout world = []" and stdin: "get_stdin world = [''corny'']"
+    shows "get_stdout (get_new_world main world) = [''Hello World! What is your name?'', ''Hello, corny!'']"
+  proof -
+    let ?world1="get_new_world (println (STR ''Hello World! What is your name?'')) world"
+    let ?world2="get_new_world getLine ?world1"
+    from stdout have stdout_world2:
+      "get_stdout ?world2 = [''Hello World! What is your name?'']"
+      apply simp
+      apply code_simp
+      done
+    from get_stdin_getLine[where stdin="[]", OF stdin] have stdin_world2:
+      "get_new_result getLine ?world1 = String.implode ''corny''"
+      by (simp add: get_stdin_getLine stdin)
+    show ?thesis
+      unfolding main_def using stdout
+      apply(auto simp add: get_new_world_bind)
+       apply code_simp
+      apply (subst stdin_world2)
+      apply (subst plus_literal.rep_eq)+
+      apply code_simp
+      done
+  qed
 end
 
 end

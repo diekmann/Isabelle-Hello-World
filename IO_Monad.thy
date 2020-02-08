@@ -138,7 +138,7 @@ axiomatization
   getLine :: "String.literal IO"
 
 code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
-                              and (SML) "println" (*adding newline manually*)
+                              and (SML) "println"
             | constant getLine \<rightharpoonup> (Haskell) "StdIO.getLine"
                               and (SML) "getLine"
 

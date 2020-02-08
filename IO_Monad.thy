@@ -155,7 +155,7 @@ getLine = Prelude.getLine
 \<close>                              and (SML) \<open>
 fun println s () = TextIO.print (s ^ "\n");
 fun getLine () = case (TextIO.inputLine TextIO.stdIn) of
-                  SOME s => s
+                  SOME s => String.substring (s, 0, String.size s - 1)
                 | NONE => raise Fail "getLine";
 \<close>
 code_reserved Haskell StdIO println getLine

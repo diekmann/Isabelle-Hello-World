@@ -98,11 +98,11 @@ text \<open>
 code_printing constant IO_Monad.bind \<rightharpoonup> (Haskell) "_ >>= _"
                                     and (SML) "bind"
             | constant IO_Monad.return \<rightharpoonup> (Haskell) "return"
-                                    and (SML) "_"
+                                    and (SML) "(() => _)"
 
 text\<open>SML does not come with a bind function. We just define it (hopefully correct).\<close>
 code_printing code_module Bind \<rightharpoonup> (SML) \<open>
-fun bind x f = f x;
+fun bind x f () = f (x ()) ();
 \<close>
 code_reserved SML bind return
   
@@ -113,7 +113,7 @@ text\<open>
   For SML, we just ignore the IO.
 \<close>
 code_printing type_constructor IO \<rightharpoonup> (Haskell) "Prelude.IO _"
-                                 and (SML) "_"
+                                 and (SML) "unit -> _"
 code_reserved Haskell IO
 code_reserved SML IO
 
@@ -138,9 +138,9 @@ axiomatization
   getLine :: "String.literal IO"
 
 code_printing constant println \<rightharpoonup> (Haskell) "StdIO.println"
-                              and (SML) "print (_ ^ \"\\n\")" (*adding newline manually*)
+                              and (SML) "println" (*adding newline manually*)
             | constant getLine \<rightharpoonup> (Haskell) "StdIO.getLine"
-                              and (SML) "getLine ()"
+                              and (SML) "getLine"
 
 text \<open>A Haskell module named StdIO which just implements println and getLine.\<close>
 code_printing code_module StdIO \<rightharpoonup> (Haskell) \<open>
@@ -148,6 +148,7 @@ import qualified Prelude (putStrLn, getLine);
 println = Prelude.putStrLn;
 getLine = Prelude.getLine;
 \<close>                              and (SML) \<open>
+fun println s () = TextIO.print (s ^ "\n");
 fun getLine () = case (TextIO.inputLine TextIO.stdIn) of
                   SOME s => s
                 | NONE => raise Fail "getLine";

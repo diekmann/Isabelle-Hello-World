@@ -21,33 +21,54 @@ definition main :: "unit io" where
 
 export_code main checking Haskell? SML
 
+
 section\<open>Running the Generated Code\<close>
 text\<open>The following examples show how to run the executed code outside Isabelle.\<close>
 
 (*Maintainer note: We invoke the generated code ON PURPOSE from bash to demonstrate how to use
   the generated code from outside Isabelle.*)
 
+subsection\<open>Haskell\<close>
+
 export_code main in Haskell file "/tmp/exported_hs"
 ML_val\<open>
 val r = if Isabelle_System.bash "which runhaskell" = 0 then
-  Isabelle_System.bash "cd /tmp/exported_hs && echo 'Cyber Cat 42' | runhaskell HelloWorld"
+  Isabelle_System.bash
+    ("cd /tmp/exported_hs && " ^
+     "echo 'Cyber Cat 42' | runhaskell HelloWorld")
 else 0;
 
 if r <> 0 then
-  raise (Fail ("example SML code did not run as expected, exit code was " ^ (Int.toString r)))
+  raise (Fail ("example Haskell code did not run as expected, " ^
+               "exit code was " ^ (Int.toString r)))
 else ();
 \<close>
+
+text\<open>The generated helper module \<^file>\<open>/tmp/exported_hs/StdIO.hs\<close> is shown below.\<close>
+text_raw\<open>\verbatiminput{/tmp/exported_hs/StdIO.hs}\<close>
+
+text\<open>The generated main file \<^file>\<open>/tmp/exported_hs/HelloWorld.hs\<close> is shown below.\<close>
+text_raw\<open>\verbatiminput{/tmp/exported_hs/HelloWorld.hs}\<close>
+
+
+
+subsection\<open>SML\<close>
 
 export_code main in SML file "/tmp/exported.sml"
 
 ML_val\<open>
 val r = Isabelle_System.bash
           ("echo 'Super Goat 2000' | " ^
-           "\"${POLYML_EXE?}\" --use /tmp/exported.sml --eval 'HelloWorld.main ()'");
+           "\"${POLYML_EXE?}\" --use /tmp/exported.sml " ^
+           "--eval 'HelloWorld.main ()'");
 
 if r <> 0 then
-  raise (Fail ("example SML code did not run as expected, exit code was " ^ (Int.toString r)))
+  raise (Fail ("example SML code did not run as expected, " ^
+               "exit code was " ^ (Int.toString r)))
 else ();
 \<close>
+
+text\<open>The generated SML code in \<^file>\<open>/tmp/exported.sml\<close> is shown below.\<close>
+text_raw\<open>\verbatiminput{/tmp/exported.sml}\<close>
 
 end

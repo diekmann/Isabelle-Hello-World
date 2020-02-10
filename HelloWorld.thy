@@ -27,18 +27,27 @@ text\<open>The following examples show how to run the executed code outside Isab
 (*Maintainer note: We invoke the generated code ON PURPOSE from bash to demonstrate how to use
   the generated code from outside Isabelle.*)
 
-export_code main in Haskell file "/tmp/yolo_hs"
+export_code main in Haskell file "/tmp/exported_hs"
 ML_val\<open>
-if Isabelle_System.bash "which runhaskell" = 0 then
-  Isabelle_System.bash "cd /tmp/yolo_hs && echo 'Cyber Cat 42' | runhaskell HelloWorld"
-else 0
+val r = if Isabelle_System.bash "which runhaskell" = 0 then
+  Isabelle_System.bash "cd /tmp/exported_hs && echo 'Cyber Cat 42' | runhaskell HelloWorld"
+else 0;
+
+if r <> 0 then
+  raise (Fail ("example SML code did not run as expected, exit code was " ^ (Int.toString r)))
+else ();
 \<close>
 
-export_code main in SML file "/tmp/yolo.sml"
+export_code main in SML file "/tmp/exported.sml"
 
 ML_val\<open>
-Isabelle_System.bash ("echo 'Super Goat 2000' | " ^
-                      "\"${POLYML_EXE?}\" --use /tmp/yolo.sml --eval 'HelloWorld.main ()'")
+val r = Isabelle_System.bash
+          ("echo 'Super Goat 2000' | " ^
+           "\"${POLYML_EXE?}\" --use /tmp/exported.sml --eval 'HelloWorld.main ()'");
+
+if r <> 0 then
+  raise (Fail ("example SML code did not run as expected, exit code was " ^ (Int.toString r)))
+else ();
 \<close>
 
 end

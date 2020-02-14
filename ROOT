@@ -5,6 +5,7 @@ session Hello_World = HOL +
   theories
     IO
     HelloWorld
+    RunningCodeFromIsabelle
     HelloWorld_Proof
   document_files
     "root.tex"

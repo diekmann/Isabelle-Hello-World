@@ -19,80 +19,30 @@ definition main :: "unit io" where
                println (STR ''Hello, '' + name + STR ''!'')
              }"
 
+
+section\<open>Generating Code\<close>
+
+text\<open>Checking that the generated code compiles.\<close>
 export_code main checking Haskell? SML
 
 
-section\<open>Running the Generated Code\<close>
-text\<open>The following examples show how to run the executed code outside Isabelle.\<close>
-
-(*Maintainer note: We invoke the generated code ON PURPOSE from bash to demonstrate how to use
-  the generated code from outside Isabelle.*)
-
 subsection\<open>Haskell\<close>
 
-export_code main in Haskell
+export_code main in Haskell file "/tmp/exported_hs"
 
-ML\<open>
-val (files, _) =
-  Code_Target.produce_code @{context} false [@{const_name main}] "Haskell" "Main" NONE []
-
-val target = File.tmp_path (Path.basic ("export" ^ serial_string ()))
-
-val ghc = getenv "ISABELLE_GHC";
-
-val cmd =
-  "cd " ^ Path.implode target ^ " && " ^
-    Bash.string ghc ^ " Main.hs && " ^
-    "(  echo 'Cyber Cat 42' | ./Main )";
-
-Isabelle_System.mkdirs target;
-
-app (fn ([file], content) =>
-   let
-     val path = Path.append target (Path.basic file)
-   in
-     File.write path content
-   end) files;
-
-val exitcode =
-  if ghc <> "" then
-    Isabelle_System.bash cmd
-  else
-    0;
-
-if exitcode <> 0 then
-  raise (Fail ("example Haskell code did not run as expected, " ^
-                 "exit code was " ^ (Int.toString exitcode)))
-else ()
-\<close>
+text\<open>The generated helper module \<^file>\<open>/tmp/exported_hs/StdIO.hs\<close> is shown below.\<close>
+text_raw\<open>\verbatiminput{/tmp/exported_hs/StdIO.hs}\<close>
+ 
+text\<open>The generated main file \<^file>\<open>/tmp/exported_hs/HelloWorld.hs\<close> is shown below.\<close>
+text_raw\<open>\verbatiminput{/tmp/exported_hs/HelloWorld.hs}\<close>
 
 
 subsection\<open>SML\<close>
 
-export_code main in SML
+export_code main in SML file "/tmp/exported.sml"
 
-ML\<open>
+text\<open>The generated SML code in \<^file>\<open>/tmp/exported.sml\<close> is shown below.\<close>
+text_raw\<open>\verbatiminput{/tmp/exported.sml}\<close>
 
-val ([(_, content)], _) =
-  Code_Target.produce_code @{context} false [@{const_name main}] "SML" "HelloWorld" NONE []
-
-val target = File.tmp_path (Path.basic ("export" ^ serial_string ()))
-val file = Path.append target (Path.basic "main.ML")
-
-val cmd =
-  "echo 'Super Goat 2000' | " ^
-    "\"${POLYML_EXE?}\" --use " ^ Path.implode file ^
-    " --eval 'HelloWorld.main ()'";
-
-Isabelle_System.mkdirs target;
-File.write file content;
-
-val exitcode = Isabelle_System.bash cmd;
-
-if exitcode <> 0 then
-  raise (Fail ("example SML code did not run as expected, " ^
-                 "exit code was " ^ (Int.toString exitcode)))
-else ()
-\<close>
 
 end

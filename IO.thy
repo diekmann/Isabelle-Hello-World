@@ -4,7 +4,7 @@ theory IO
     "HOL-Library.Monad_Syntax"
 begin
 
-section\<open>Isabelle IO Monad\<close>
+section\<open>IO Monad\<close>
 text \<open>
   Inspired by Haskell.
   Definitions from \<^url>\<open>https://wiki.haskell.org/IO_inside\<close>

@@ -2,6 +2,9 @@ theory HelloWorld_Proof
   imports HelloWorld
 begin
 
+section\<open>Correctness\<close>
+
+
 text\<open>
   Apply some function \<^term>\<open>iofun\<close> to a specific world and return the new world
   (discarding the result of \<^term>\<open>iofun\<close>).
@@ -64,7 +67,9 @@ begin
   lemma
     assumes stdout: "stdout_of world = []"
          and stdin: "stdin_of world = [''corny'']"
-    shows "stdout_of (exec main world) = [''Hello World! What is your name?'', ''Hello, corny!'']"
+       shows "stdout_of (exec main world) =
+                [''Hello World! What is your name?'',
+                 ''Hello, corny!'']"
   proof -
     let ?world1="exec (println (STR ''Hello World! What is your name?'')) world"
     have stdout_world2:

@@ -4,47 +4,6 @@ begin
 
 section\<open>Correctness\<close>
 
-subsection\<open>Running an \<^typ>\<open>'\<alpha> io\<close> Function\<close>
-
-text\<open>
-  Apply some function \<^term>\<open>iofun :: '\<alpha> io\<close> to a specific world and return the new world
-  (discarding the result of \<^term>\<open>iofun\<close>).
-\<close>
-definition exec :: "'\<alpha> io \<Rightarrow> \<^url> \<Rightarrow> \<^url>" where
-  "exec iofun world = snd (Rep_io iofun world)"
-
-text\<open>Similar, but only get the result.\<close>
-definition eval :: "'\<alpha> io \<Rightarrow> \<^url> \<Rightarrow> '\<alpha>" where
-  "eval iofun world = fst (Rep_io iofun world)"
-
-text\<open>
-  Essentially, \<^const>\<open>exec\<close> and \<^const>\<open>eval\<close> extract the payload \<^typ>\<open>'\<alpha>\<close> and \<^typ>\<open>\<^url>\<close>
-  when executing an \<^typ>\<open>'\<alpha> io\<close>.
-\<close>
-lemma "Abs_io (\<lambda>world. (eval iofun world, exec iofun world)) = iofun"
-  by(simp add: exec_def eval_def Rep_io_inverse)
-
-lemma exec_Abs_io: "exec (Abs_io f) world = snd (f world)"
-  by(simp add: exec_def Abs_io_inverse)
-
-
-lemma exec_then:
-    "exec (io\<^sub>1 \<then> io\<^sub>2) world = exec io\<^sub>2 (exec io\<^sub>1 world)"
-  and eval_then:
-    "eval (io\<^sub>1 \<then> io\<^sub>2) world = eval io\<^sub>2 (exec io\<^sub>1 world)"
-  by (simp_all add: exec_def eval_def bind_def Abs_io_inverse split_beta)
-
-lemma exec_bind:
-    "exec (io\<^sub>1 \<bind> io\<^sub>2) world = exec (io\<^sub>2 (eval io\<^sub>1 world)) (exec io\<^sub>1 world)"
-  and eval_bind:
-    "eval (io\<^sub>1 \<bind> io\<^sub>2) world = eval (io\<^sub>2 (eval io\<^sub>1 world)) (exec io\<^sub>1 world)"
-  by(simp_all add: exec_def eval_def bind_def Abs_io_inverse split_beta)
-
-lemma exec_return:
-    "exec (IO.return a) world = world"
-  and
-    "eval (IO.return a) world = a"
-  by (simp_all add: exec_def eval_def Abs_io_inverse return_def)
 
 subsection\<open>Modeling Input and Output\<close>
 

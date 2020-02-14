@@ -17,8 +17,17 @@ text\<open>Similar, but only get the result.\<close>
 definition eval :: "'\<alpha> io \<Rightarrow> \<^url> \<Rightarrow> '\<alpha>" where
   "eval iofun world = fst (Rep_io iofun world)"
 
+text\<open>
+  Essentially, \<^const>\<open>exec\<close> and \<^const>\<open>eval\<close> extract the payload \<^typ>\<open>'\<alpha>\<close> and \<^typ>\<open>\<^url>\<close>
+  when executing an \<^typ>\<open>'\<alpha> io\<close>.
+\<close>
+lemma "Abs_io (\<lambda>world. (eval iofun world, exec iofun world)) = iofun"
+  by(simp add: exec_def eval_def Rep_io_inverse)
+
 lemma exec_Abs_io: "exec (Abs_io f) world = snd (f world)"
   by(simp add: exec_def Abs_io_inverse)
+
+
 
 lemma exec_then:
     "exec (io\<^sub>1 \<then> io\<^sub>2) world = exec io\<^sub>2 (exec io\<^sub>1 world)"

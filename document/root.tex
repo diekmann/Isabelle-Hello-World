@@ -6,27 +6,6 @@
 
 \usepackage{verbatim}
 
-% further packages required for unusual symbols (see also
-% isabellesym.sty), use only when needed
-
-%\usepackage{amssymb}
-  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
-  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
-  %\<triangleq>, \<yen>, \<lozenge>
-
-%\usepackage{eurosym}
-  %for \<euro>
-
-%\usepackage[only,bigsqcap]{stmaryrd}
-  %for \<Sqinter>
-
-%\usepackage{eufrak}
-  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
-
-%\usepackage{textcomp}
-  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
-  %\<currency>
-
 
 % this should be the last package used
 \usepackage{pdfsetup}
@@ -35,15 +14,19 @@
 \urlstyle{rm}
 \isabellestyle{it}
 
-% for uniform font size
-%\renewcommand{\isastyle}{\isastyleminor}
-
 
 \begin{document}
 
 \title{Hello World}
-\author{Cornelius Diekmann}
+\author{Cornelius Diekmann, Lars Hupel}
 \maketitle
+
+\begin{abstract}
+In this article, we present a formalization of the well-known ``Hello, World!'' code, including a formal framework for reasoning about IO.
+Our model is inspired by the handling of IO in Haskell.
+We start by formalizing the \isactrlurl{} and embrace the IO monad afterwards.
+Then we present a sample \verb~main :: IO ()~, followed by its proof of correctness.
+\end{abstract}
 
 \tableofcontents
 

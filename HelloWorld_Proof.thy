@@ -28,7 +28,6 @@ lemma exec_Abs_io: "exec (Abs_io f) world = snd (f world)"
   by(simp add: exec_def Abs_io_inverse)
 
 
-
 lemma exec_then:
     "exec (io\<^sub>1 \<then> io\<^sub>2) world = exec io\<^sub>2 (exec io\<^sub>1 world)"
   and eval_then:
@@ -40,6 +39,12 @@ lemma exec_bind:
   and eval_bind:
     "eval (io\<^sub>1 \<bind> io\<^sub>2) world = eval (io\<^sub>2 (eval io\<^sub>1 world)) (exec io\<^sub>1 world)"
   by(simp_all add: exec_def eval_def bind_def Abs_io_inverse split_beta)
+
+lemma exec_return:
+    "exec (IO.return a) world = world"
+  and
+    "eval (IO.return a) world = a"
+  by (simp_all add: exec_def eval_def Abs_io_inverse return_def)
 
 subsection\<open>Modeling Input and Output\<close>
 
